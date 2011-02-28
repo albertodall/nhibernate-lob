@@ -10,7 +10,6 @@ namespace NHibernate.Lob.External
 {
 	public class DriverConnectionProvider : IConnectionProvider
 	{
-
 		private global::NHibernate.Connection.DriverConnectionProvider _base;
 		private IExternalBlobConnectionProvider _provider;
 

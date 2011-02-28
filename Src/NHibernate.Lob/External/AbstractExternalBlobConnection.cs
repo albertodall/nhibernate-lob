@@ -22,7 +22,7 @@ namespace NHibernate.Lob.External
 
 		public abstract bool Equals(IExternalBlobConnection connection);
 
-		public AbstractExternalBlobConnection()
+		protected AbstractExternalBlobConnection()
 		{
 			openedStreams = new List<WeakReference>();
 		}

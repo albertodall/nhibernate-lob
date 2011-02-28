@@ -129,16 +129,26 @@ namespace NHibernate.Lob.External
 
 			IExternalBlobConnection conn = GetExternalBlobConnection(session);
 
-			byte[] identifier = new byte[conn.BlobIdentifierLength];
+			byte[] identifier;
 
-			int i = (int)rs.GetBytes(index, 0, identifier, 0, identifier.Length);
-			if (i != identifier.Length) throw new Exception("Unknown identifier length. Recieved " + i.ToString() + " but expected " + identifier.Length.ToString() + " bytes");
+			if (conn.BlobIdentifierLength == Int32.MaxValue)
+			{
+				int length = (int)rs.GetBytes(index, 0L, null, 0, 0);
+				identifier = new byte[length];
+				rs.GetBytes(index, 0L, identifier, 0, length);				
+			}
+			else
+			{
+				identifier = new byte[conn.BlobIdentifierLength];
+				int i = (int) rs.GetBytes(index, 0, identifier, 0, identifier.Length);
+				if (i != identifier.Length) throw new Exception("Unknown identifier length. Recieved " + i.ToString() + " but expected " + identifier.Length.ToString() + " bytes");
+			}
 
 			return CreateLobInstance(conn, identifier);
 		}
 
 		public override SqlType[] SqlTypes(IMapping mapping)
-		{
+		{			
 			return new SqlType[] { new SqlType(DbType.Binary, this.identifierLength == 0 ? 32 : this.identifierLength) };
 		}
 

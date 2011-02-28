@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Collections.Generic;
+using System.Xml;
 using System.IO;
 using NHibernate.UserTypes;
 using System.Collections;
@@ -65,15 +66,7 @@ namespace NHibernate.Lob.Compression
 		{
 			this.compressor = compressor;
 		}
-
-		public void SetParameterValues(IDictionary parameters)
-		{
-			string conf = parameters["conformance"] as string;
-			if (!string.IsNullOrEmpty(conf)) ConformanceLevel = (ConformanceLevel)Enum.Parse(typeof(ConformanceLevel), conf, true);
-			string enc = parameters["encoding"] as string;
-			if (!string.IsNullOrEmpty(enc)) Encoding = System.Text.Encoding.GetEncoding(enc);
-		}
-
+		
 		public XmlReader GetDecompressor(Stream input)
 		{
 			var parser = new XmlParserContext(null, null, null, XmlSpace.Preserve);
@@ -99,6 +92,14 @@ namespace NHibernate.Lob.Compression
 		public override int GetHashCode()
 		{
 			return base.GetHashCode();
+		}
+
+		public void SetParameterValues(IDictionary<string, string> parameters)
+		{
+			string conf = parameters["conformance"];
+			if (!string.IsNullOrEmpty(conf)) ConformanceLevel = (ConformanceLevel)Enum.Parse(typeof(ConformanceLevel), conf, true);
+			string enc = parameters["encoding"];
+			if (!string.IsNullOrEmpty(enc)) Encoding = System.Text.Encoding.GetEncoding(enc);
 		}
 	}
 }

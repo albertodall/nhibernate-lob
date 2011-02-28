@@ -1,4 +1,5 @@
-﻿using NHibernate.Lob.Compression;
+﻿using System.Collections.Generic;
+using NHibernate.Lob.Compression;
 using NHibernate.UserTypes;
 using System;
 using System.Collections;
@@ -22,13 +23,6 @@ namespace NHibernate.Lob.External
 		public ExternalXlobType()
 		{
 			compression = new XmlTextCompressor();
-		}
-
-		public virtual void SetParameterValues(IDictionary parameters)
-		{
-			IXmlCompressor c;
-			Parameters.GetXlobSettings(parameters, out c);
-			if (c != null) this.compression = c;
 		}
 
 		protected override object CreateLobInstance(IExternalBlobConnection connection, byte[] identifier)
@@ -71,6 +65,13 @@ namespace NHibernate.Lob.External
 		public override int GetHashCode()
 		{
 			return base.GetHashCode();
+		}
+
+		public virtual void SetParameterValues(IDictionary<string, string> parameters)
+		{
+			IXmlCompressor c;
+			Parameters.GetXlobSettings(parameters, out c);
+			if (c != null) this.compression = c;
 		}
 	}
 }

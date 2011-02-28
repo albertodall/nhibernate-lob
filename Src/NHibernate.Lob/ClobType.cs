@@ -1,40 +1,43 @@
-﻿using NHibernate.UserTypes;
-using NHibernate.Lob.Compression;
-using System.Text;
-using System.Collections;
-using Calyptus.Lob;
+﻿using System.Collections.Generic;
+using System.Data;
 using System.IO;
-using NHibernate.SqlTypes;
+using System.Text;
+using Calyptus.Lob;
 using NHibernate.Engine;
+using NHibernate.Lob.Compression;
+using NHibernate.SqlTypes;
+using NHibernate.UserTypes;
 
 namespace NHibernate.Lob
 {
 	public class ClobType : AbstractLobType, IParameterizedType
 	{
-		private IStreamCompressor compression;
+		IStreamCompressor compression;
+
+		Encoding encoding;
+
 		public IStreamCompressor Compression
 		{
-			get
-			{
-				return compression;
-			}
-		}
-		private Encoding encoding;
-		public Encoding Encoding
-		{
-			get
-			{
-				return encoding;
-			}
+			get { return compression; }
 		}
 
-		public virtual void SetParameterValues(IDictionary parameters)
+		public Encoding Encoding
 		{
-			Parameters.GetClobSettings(parameters, out this.encoding, out this.compression);
+			get { return encoding; }
+		}
+
+		public override System.Type ReturnedClass
+		{
+			get { return typeof (Clob); }
+		}
+
+		public void SetParameterValues(IDictionary<string, string> parameters)
+		{
+			Parameters.GetClobSettings(parameters, out encoding, out compression);
 			if (compression != null && encoding == null) encoding = Encoding.UTF8;
 		}
 
-		protected override object Get(System.Data.IDataReader rs, int ordinal)
+		protected override object Get(IDataReader rs, int ordinal)
 		{
 			if (compression == null)
 				return new StringClob(rs.GetString(ordinal));
@@ -43,14 +46,14 @@ namespace NHibernate.Lob
 
 		protected override object GetData(object value)
 		{
-			Clob clob = value as Clob;
+			var clob = value as Clob;
 			if (clob == null) return null;
 			if (compression == null)
 			{
 				if (clob.Equals(Clob.Empty)) return "";
-				StringClob sc = clob as StringClob;
+				var sc = clob as StringClob;
 				if (sc != null) return sc.Text;
-				using (StringWriter sw = new StringWriter())
+				using (var sw = new StringWriter())
 				{
 					clob.WriteTo(sw);
 					return sw.ToString();
@@ -58,12 +61,12 @@ namespace NHibernate.Lob
 			}
 			else
 			{
-				CompressedClob cb = clob as CompressedClob;
+				var cb = clob as CompressedClob;
 				if (cb != null && cb.Compression.Equals(compression)) return cb.Data;
-				using (MemoryStream data = new MemoryStream())
+				using (var data = new MemoryStream())
 				{
 					using (Stream cs = compression.GetCompressor(data))
-					using (StreamWriter sw = new StreamWriter(cs, encoding))
+					using (var sw = new StreamWriter(cs, encoding))
 						clob.WriteTo(sw);
 					return data.ToArray();
 				}
@@ -74,12 +77,12 @@ namespace NHibernate.Lob
 		{
 			if (compression == null)
 			{
-				string str = dataObj as string;
+				var str = dataObj as string;
 				return str == null ? null : new StringClob(str);
 			}
 			else
 			{
-				byte[] data = dataObj as byte[];
+				var data = dataObj as byte[];
 				if (data == null) return null;
 				return new CompressedClob(data, encoding, compression);
 			}
@@ -88,24 +91,19 @@ namespace NHibernate.Lob
 		public override SqlType[] SqlTypes(IMapping mapping)
 		{
 			if (compression == null)
-				return new SqlType[] { new StringClobSqlType() };
+				return new SqlType[] {new StringClobSqlType()};
 			else
-				return new SqlType[] { new BinaryBlobSqlType() };
-		}
-
-		public override System.Type ReturnedClass
-		{
-			get { return typeof(Clob); }
+				return new SqlType[] {new BinaryBlobSqlType()};
 		}
 
 		public override bool Equals(object obj)
 		{
 			if (obj == this) return true;
 			if (!base.Equals(obj)) return false;
-			ClobType ct = obj as ClobType;
-			if (this.encoding != ct.encoding && this.encoding != null && !this.encoding.Equals(ct.encoding)) return false;
-			if (this.compression == ct.compression) return true;
-			return this.compression != null && this.compression.Equals(ct.compression);
+			var ct = obj as ClobType;
+			if (encoding != ct.encoding && encoding != null && !encoding.Equals(ct.encoding)) return false;
+			if (compression == ct.compression) return true;
+			return compression != null && compression.Equals(ct.compression);
 		}
 
 		public override int GetHashCode()

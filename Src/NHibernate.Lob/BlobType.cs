@@ -1,4 +1,5 @@
-﻿using NHibernate.UserTypes;
+﻿using System.Collections.Generic;
+using NHibernate.UserTypes;
 using NHibernate.Lob.Compression;
 using System.Collections;
 using System;
@@ -18,11 +19,6 @@ namespace NHibernate.Lob
 			{
 				return compression;
 			}
-		}
-
-		public virtual void SetParameterValues(IDictionary parameters)
-		{
-			Parameters.GetBlobSettings(parameters, out this.compression);
 		}
 
 		protected override object GetData(object value)
@@ -76,6 +72,11 @@ namespace NHibernate.Lob
 		public override int GetHashCode()
 		{
 			return base.GetHashCode();
+		}
+
+		public virtual void SetParameterValues(IDictionary<string, string> parameters)
+		{
+			Parameters.GetBlobSettings(parameters, out this.compression);
 		}
 	}
 }
