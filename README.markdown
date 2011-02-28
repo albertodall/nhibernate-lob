@@ -1,11 +1,11 @@
 Introduction
 ------------
 
-The NHibernate.LOB project is a library for extending the functionality of NHibernate to support storing blobs as part of an Entity which may or may not be stored in the database.
+The "Lob" project is a library for extending the functionality of ORM's (Currently just NHibernate) to support storing blobs as part of an Entity which may or may not be stored in the database.
 
-The implementation allows you to switch between External Connnection providers, which will then store the contents of the blob in different locations (FileSystem, Document database etc.)
+The implementation allows you to switch between External Connnection providers, which will then store the contents of the blob in different locations (File System, Document database etc.)
 
-This implementation is a fork of the Calyptus Labs NHibernate.Lob project - for more info about the original project see the [NHibernate.Lob Project][1].
+This implementation is a fork of the Calyptus Lab's NHibernate.Lob project - for more info about the original project see the [NHibernate.Lob Project][1].
 
 Why would I want this?
 ----------------------

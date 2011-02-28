@@ -8,6 +8,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lob.NHibernate.Tests", "Lob.NHibernate.Tests\Lob.NHibernate.Tests.csproj", "{67D4406D-B85F-4D85-AB41-760115DF1A89}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{84EF5A74-EBD2-40BE-AF19-18BBCA3A4FF3}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.markdown = ..\README.markdown
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
