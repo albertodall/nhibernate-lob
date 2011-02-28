@@ -134,6 +134,32 @@ Project Structure
   - **Lob.NHibernate** - Implementation of an external storage provider that wraps the NHibernate connection mechanics combined with some custom types that takes care of saving blobs to external storage.
   - **Lob.NHibernate.Tests** - XUnit.Net Tests for the framework (Very much a WIP as the original library had no associated tests).
   
+Compression
+-----------
+
+There is optional supprot for compressing the contents of a blob while being streamed to/from the external storage.
+
+To enable this, you need to set the compression type as a parameter in the NHibernate definition for the Blob property, like so:
+
+	<class name="Image">
+		<id name="Id">
+			<generator class="guid" />
+		</id>
+		<property name="FileName" />
+		<property name="ContentType" />
+		<property name="Size" />
+		<property name="Title" />
+		<property name="Contents">
+			<type name="Lob.NHibernate.Type.ExternalBlobType, Lob.NHibernate">
+				<param name="compression">gzip</param>
+			</type>			
+		</property>
+	</class>
+	
+There is a well known type "gzip" which can be used, otherwise you will need to supply the fully qualified type name of a type implementing either the IStreamCompressor or IXmlCompressor (for XLob's) interface.
+
+Note: Castle ActiveRecord does not support type parameters - to work around this you will need to inherit from ExternalBlobType/ExternalClobType/ExternalXlobType and specify the compressor explicity, then use those inherited types when specifying the mappings for your class. 
+ 
 Additional Resources
 --------------------
 

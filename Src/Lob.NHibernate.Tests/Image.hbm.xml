@@ -10,7 +10,11 @@
 		<property name="ContentType" />
 		<property name="Size" />
 		<property name="Title" />
-		<property name="Contents" type="Lob.NHibernate.Type.ExternalBlobType, Lob.NHibernate" />
+		<property name="Contents">
+			<type name="Lob.NHibernate.Type.ExternalBlobType, Lob.NHibernate">
+				<param name="compression">gzip</param>
+			</type>			
+		</property>
 	</class>
 
 </hibernate-mapping>
