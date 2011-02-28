@@ -22,7 +22,7 @@ What's supported
 Currently there are two connection providers
 
   - **Lob.NHibernate.Providers.ByteArray.ByteArrayConnectionProvider** - Which allows storing data in a blob/image column (as you probably do today).
-  - **Lob.NHibernate.Providers.FileSystemCas.FileSystemCasConnectionProvider** - Which allows storing data on the file system - it uses a crytopgrahic hash to determine an identifier for the file, which is then stored in the database (see Content-addressable storage for more details) http://en.wikipedia.org/wiki/Content-addressable_storage.
+  - **Lob.NHibernate.Providers.FileSystemCas.FileSystemCasConnectionProvider** - Which allows storing data on the file system - it uses a crytopgrahic hash to determine an identifier for the file, which is then stored in the database (see [Content-addressable storage][2] for more details).
 
 Future plans for additional storage providers include:
 
@@ -139,7 +139,7 @@ Additional Resources
 
 **Calyptus Blog posts on the original NHibernate.Lob Project**
 
-  - [Calyptus Blog Post #1][2]
+  - [Calyptus Blog Post #1][1]
   - [Calyptus Blog Post #2][3]  
 
 Maintainer
@@ -152,7 +152,7 @@ The current maintainer of this Fork is Alex Henderson a.k.a [@bittercoder][5].
   - [Bittercoder's Email][6].
 
   [1]: http://blog.calyptus.eu/seb/2009/03/large-object-storage-for-nhibernate-and-ddd-part-1-blobs-clobs-and-xlobs/
-  [2]: http://blog.calyptus.eu/seb/2009/03/large-object-storage-for-nhibernate-and-ddd-part-1-blobs-clobs-and-xlobs/
+  [2]: http://en.wikipedia.org/wiki/Content-addressable_storage
   [3]: http://blog.calyptus.eu/seb/2009/03/large-object-storage-for-nhibernate-part-2-storage-options/
   [4]: http://blog.bittercoder.com/
   [5]: http://twitter.com/bittercoder
