@@ -17,9 +17,10 @@ namespace Lob.NHibernate.Type
 			_compression = new XmlTextCompressor();
 		}
 
-		public IXmlCompressor Compression
+		public virtual IXmlCompressor Compression
 		{
 			get { return _compression; }
+			protected set { _compression = value; }
 		}
 
 		public override System.Type ReturnedClass
@@ -29,14 +30,16 @@ namespace Lob.NHibernate.Type
 
 		public virtual void SetParameterValues(IDictionary<string, string> parameters)
 		{
+			int length;
 			IXmlCompressor c;
-			Parameters.GetXlobSettings(parameters, out c);
+			Parameters.GetXlobSettings(parameters, out c, out length);
 			if (c != null) _compression = c;
+			PayloadLength = length;
 		}
 
-		protected override object CreateLobInstance(IExternalBlobConnection connection, byte[] identifier)
+		protected override object CreateLobInstance(IExternalBlobConnection connection, byte[] payload)
 		{
-			return new ExternalXlob(connection, identifier, _compression);
+			return new ExternalXlob(connection, payload, _compression);
 		}
 
 		protected override bool ExtractLobData(object lob, out IExternalBlobConnection connection, out byte[] identifier)

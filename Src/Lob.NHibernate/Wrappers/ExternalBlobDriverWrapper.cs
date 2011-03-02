@@ -16,6 +16,11 @@ namespace Lob.NHibernate.Wrappers
 			_base = driver;
 		}
 
+		public IDriver UnderlyingDriver
+		{
+			get { return _base; }
+		}
+
 		public void Configure(IDictionary<string, string> settings)
 		{
 			_base.Configure(settings);

@@ -10,7 +10,7 @@ namespace Lob.NHibernate
 {
 	public class ExternalBlobDriverConnectionProvider : IConnectionProvider
 	{
-		readonly DriverConnectionProvider _base;
+		IConnectionProvider _base;
 		IExternalBlobConnectionProvider _provider;
 
 		public ExternalBlobDriverConnectionProvider()
@@ -20,17 +20,34 @@ namespace Lob.NHibernate
 
 		public void Configure(IDictionary<string, string> settings)
 		{
-			System.Type providerType;
-			string t;
-			if (settings.TryGetValue(Environment.ConnectionProviderProperty, out t) && t != null)
+			CreateBlobProviderFromConfiguration(settings);
+			OverrideDefaultConnectProviderBaseIfSpecified(settings);
+			_base.Configure(settings);
+		}
+
+		void OverrideDefaultConnectProviderBaseIfSpecified(IDictionary<string, string> settings)
+		{
+			string typeAsString;
+			if (settings.TryGetValue(Environment.ConnectionUnderlyingDriverConnectionProvider, out typeAsString))
 			{
-				providerType = System.Type.GetType(t);
+				System.Type providerType = System.Type.GetType(typeAsString);
+				_base = (IConnectionProvider) Activator.CreateInstance(providerType);
+			}
+		}
+
+		void CreateBlobProviderFromConfiguration(IDictionary<string, string> settings)
+		{
+			System.Type providerType;
+			string typeAsString;
+			if (settings.TryGetValue(Environment.ConnectionProviderProperty, out typeAsString) && typeAsString != null)
+			{
+				providerType = System.Type.GetType(typeAsString);
 				_provider = (IExternalBlobConnectionProvider) Activator.CreateInstance(providerType);
 				_provider.Configure(settings);
 			}
-			else if (settings.TryGetValue(Environment.ConnectionStringNameProperty, out t) && t != null)
+			else if (settings.TryGetValue(Environment.ConnectionStringNameProperty, out typeAsString) && typeAsString != null)
 			{
-				ConnectionStringSettings connectionStringSettings = ConfigurationManager.ConnectionStrings[t];
+				ConnectionStringSettings connectionStringSettings = ConfigurationManager.ConnectionStrings[typeAsString];
 				if (connectionStringSettings != null && !string.IsNullOrEmpty(connectionStringSettings.ProviderName))
 				{
 					providerType = System.Type.GetType(connectionStringSettings.ProviderName);
@@ -41,7 +58,6 @@ namespace Lob.NHibernate
 					}
 				}
 			}
-			_base.Configure(settings);
 		}
 
 		public IDbConnection GetConnection()

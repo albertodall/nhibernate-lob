@@ -18,9 +18,10 @@ namespace Lob.NHibernate.Type
 			_encoding = Encoding.UTF8;
 		}
 
-		public IStreamCompressor Compression
+		public virtual IStreamCompressor Compression
 		{
 			get { return _compression; }
+			protected set { _compression = value; }
 		}
 
 		public Encoding Encoding
@@ -35,12 +36,14 @@ namespace Lob.NHibernate.Type
 
 		public virtual void SetParameterValues(IDictionary<string, string> parameters)
 		{
-			Parameters.GetClobSettings(parameters, out _encoding, out _compression);
+			int length;
+			Parameters.GetClobSettings(parameters, out _encoding, out _compression, out length);
+			PayloadLength = length;
 		}
 
-		protected override object CreateLobInstance(IExternalBlobConnection connection, byte[] identifier)
+		protected override object CreateLobInstance(IExternalBlobConnection connection, byte[] payload)
 		{
-			return new ExternalClob(connection, identifier, _encoding, _compression);
+			return new ExternalClob(connection, payload, _encoding, _compression);
 		}
 
 		protected override bool ExtractLobData(object lob, out IExternalBlobConnection connection, out byte[] identifier)

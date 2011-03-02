@@ -8,6 +8,7 @@ namespace Lob.NHibernate
 		public const string ConnectionProviderProperty = "connection.lob.external.provider";
 		public const string ConnectionStringNameProperty = "connection.lob.external.connection_string_name";
 		public const string ConnectionStringProperty = "connection.lob.external.connection_string";
+		public const string ConnectionUnderlyingDriverConnectionProvider = "connection.lob.driver.provider";
 
 		public static void GarbageCollect(ISession session)
 		{

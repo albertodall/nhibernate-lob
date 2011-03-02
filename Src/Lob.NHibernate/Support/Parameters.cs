@@ -8,9 +8,12 @@ namespace Lob.NHibernate.Support
 {
 	public static class Parameters
 	{
-		public static void GetBlobSettings(IDictionary<string, string> parameters, out IStreamCompressor compression)
+		public static void GetBlobSettings(IDictionary<string, string> parameters, out IStreamCompressor compression, out int length)
 		{
+			length = ParseLength(parameters);
+
 			string compr = parameters == null ? null : parameters["compression"];
+			
 			if (string.IsNullOrEmpty(compr))
 			{
 				compression = null;
@@ -29,8 +32,40 @@ namespace Lob.NHibernate.Support
 			}
 		}
 
-		public static void GetClobSettings(IDictionary<string, string> parameters, out Encoding encoding, out IStreamCompressor compression)
+		static int ParseLength(IDictionary<string, string> parameters)
 		{
+			int length;
+			string len = null;
+
+			if (parameters != null) parameters.TryGetValue("length", out len);
+
+			if (!string.IsNullOrEmpty(len))
+			{
+				if (len.Equals("max", StringComparison.OrdinalIgnoreCase))
+				{
+					length = Int32.MaxValue;
+				}
+				else if (len.EndsWith("default", StringComparison.OrdinalIgnoreCase))
+				{
+					length = 32;
+				}
+				else
+				{
+					length = Convert.ToInt32(len);
+				}
+			}
+			else
+			{
+				length = 0;
+			}
+
+			return length;
+		}
+
+		public static void GetClobSettings(IDictionary<string, string> parameters, out Encoding encoding, out IStreamCompressor compression, out int length)
+		{
+			length = ParseLength(parameters);
+
 			string compr = parameters == null ? null : parameters["compression"];
 			if (string.IsNullOrEmpty(compr))
 				compression = null;
@@ -50,8 +85,10 @@ namespace Lob.NHibernate.Support
 			encoding = !string.IsNullOrEmpty(enc) ? Encoding.GetEncoding(enc) : null;
 		}
 
-		public static void GetXlobSettings(IDictionary<string, string> parameters, out IXmlCompressor compression)
+		public static void GetXlobSettings(IDictionary<string, string> parameters, out IXmlCompressor compression, out int length)
 		{
+			length = ParseLength(parameters);
+
 			string compr = parameters == null ? null : parameters["compression"];
 			if (string.IsNullOrEmpty(compr))
 				compression = null;

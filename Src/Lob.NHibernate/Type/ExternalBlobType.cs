@@ -11,9 +11,10 @@ namespace Lob.NHibernate.Type
 	{
 		IStreamCompressor _compression;
 
-		public IStreamCompressor Compression
+		public virtual IStreamCompressor Compression
 		{
 			get { return _compression; }
+			protected set { _compression = value; }
 		}
 
 		public override System.Type ReturnedClass
@@ -23,12 +24,14 @@ namespace Lob.NHibernate.Type
 
 		public virtual void SetParameterValues(IDictionary<string, string> parameters)
 		{
-			Parameters.GetBlobSettings(parameters, out _compression);
+			int length;
+			Parameters.GetBlobSettings(parameters, out _compression, out length);
+			PayloadLength = length;
 		}
 
-		protected override object CreateLobInstance(IExternalBlobConnection connection, byte[] identifier)
+		protected override object CreateLobInstance(IExternalBlobConnection connection, byte[] payload)
 		{
-			return new ExternalBlob(connection, identifier, _compression);
+			return new ExternalBlob(connection, payload, _compression);
 		}
 
 		protected override bool ExtractLobData(object lob, out IExternalBlobConnection connection, out byte[] identifier)

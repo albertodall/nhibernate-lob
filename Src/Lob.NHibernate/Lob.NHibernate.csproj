@@ -71,6 +71,8 @@
     <Compile Include="Compression\IXmlCompressor.cs" />
     <Compile Include="Compression\XmlTextCompressor.cs" />
     <Compile Include="AbstractExternalBlobConnection.cs" />
+    <Compile Include="Providers\Migration\MigrationConnection.cs" />
+    <Compile Include="Providers\Migration\MigrationConnectionProvider.cs" />
     <Compile Include="Providers\ByteArray\ByteArrayConnection.cs" />
     <Compile Include="Providers\ByteArray\ByteArrayConnectionProviderr.cs" />
     <Compile Include="Providers\ByteArray\ByteArrayWriter.cs" />
@@ -83,6 +85,9 @@
     <Compile Include="Type\AbstractExternalBlobType.cs" />
     <Compile Include="Type\ExternalXlobType.cs" />
     <Compile Include="Type\ExternalBlobType.cs" />
+    <Compile Include="Type\GzipExternalBlobType.cs" />
+    <Compile Include="Type\GzipExternalClobType.cs" />
+    <Compile Include="Type\GzipExternalXlobType.cs" />
     <Compile Include="Wrappers\ExternalBlobDbCommandWrapper.cs">
       <SubType>Component</SubType>
     </Compile>

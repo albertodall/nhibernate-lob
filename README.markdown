@@ -137,7 +137,7 @@ Project Structure
 Compression
 -----------
 
-There is optional supprot for compressing the contents of a blob while being streamed to/from the external storage.
+There is optional support for compressing the contents of a blob while being streamed to/from the external storage.
 
 To enable this, you need to set the compression type as a parameter in the NHibernate definition for the Blob property, like so:
 
@@ -159,7 +159,27 @@ To enable this, you need to set the compression type as a parameter in the NHibe
 There is a well known type "gzip" which can be used, otherwise you will need to supply the fully qualified type name of a type implementing either the IStreamCompressor or IXmlCompressor (for XLob's) interface.
 
 Note: Castle ActiveRecord does not support type parameters - to work around this you will need to inherit from ExternalBlobType/ExternalClobType/ExternalXlobType and specify the compressor explicity, then use those inherited types when specifying the mappings for your class. 
- 
+
+Length Of Field
+---------------
+
+What get's store in the database for a blob is called a "payload" - this payload may be of fixed length i.e. an identifier, such as that used by the FileSystemCas implementation.  Or may be an actual blob, as per the BlobArray implementation, or some form of hybride i.e. if less then 64K the value is stored as a blob, over 64K  it is stored in some external storage - it's up the implementor of the external provider.
+
+The maximum length of the payload can be configured via a length property in your mappings i.e.
+
+	<property name="Contents">
+		<type name="Lob.NHibernate.Type.ExternalBlobType, Lob.NHibernate">
+			<param name="length">256</param>
+		</type>			
+	</property>
+	
+There are also two sentinel values you can use in place of an exact length:
+
+  - "default" - which will currently resolve to 32.
+  - "max" - which will resolve to Int32.Max
+  
+The reason your normally wish to provide this value is when testing, where you may be using SchemaExport to create a test database - in these cases an IExternalBlobConnection implementation will not be available to the custom type, and so it will make the most conservative guess and use a BinaryBlob, where as you may wish to specify an exact length matching the payload size you expect for your chose External Provider.
+
 Additional Resources
 --------------------
 
@@ -168,6 +188,19 @@ Additional Resources
   - [Calyptus Blog Post #1][1]
   - [Calyptus Blog Post #2][3]  
 
+Underlying DriverConnectionProvider 
+-----------------------------------
+
+The Lob.NHibernate implementation works by replacing the DriverConnectionProvider instance most NHibernate users make use of, and replaces it with an "ExternalBlobDriverConnectionProvider".  This class works as a wrapper, instantiating an underlying "DriverConnectionProvider" which then handles creation of the Driver, Connection etc.
+
+In some cases (often while testing with a database such as Sqlite) you may wish to use an alternative DriverConnectionProvider, to do so you can specify in your nhibernate configuration:
+
+	<config>
+		....
+		<add key="connection.lob.driver.provider" value="MyApp.CustomDriverConnectionProvider, MyApp" />
+		...
+	</config>
+  
 Maintainer
 ----------
 

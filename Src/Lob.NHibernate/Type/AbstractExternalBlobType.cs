@@ -13,7 +13,7 @@ namespace Lob.NHibernate.Type
 {
 	public abstract class AbstractExternalBlobType : AbstractType
 	{
-		int _identifierLength;
+		protected int PayloadLength { get; set; }
 
 		public override bool IsMutable
 		{
@@ -32,11 +32,11 @@ namespace Lob.NHibernate.Type
 			if (c == null)
 				throw new Exception(
 					"ExternalBlobTypes requires a IExternalBlobConnection. Make sure you use NHibernate.Lob.External.DriverConnectionProvider and specify an IExternalBlobConnectionProvider in your NHibernate configuration.");
-			if (_identifierLength == 0) _identifierLength = c.BlobIdentifierLength;
+			if (PayloadLength == 0) PayloadLength = c.BlobIdentifierLength;
 			return c;
 		}
 
-		protected abstract object CreateLobInstance(IExternalBlobConnection connection, byte[] identifier);
+		protected abstract object CreateLobInstance(IExternalBlobConnection connection, byte[] payload);
 
 		protected abstract bool ExtractLobData(object lob, out IExternalBlobConnection connection, out byte[] identifier);
 
@@ -45,11 +45,11 @@ namespace Lob.NHibernate.Type
 		public override string ToLoggableString(object value, ISessionFactoryImplementor factory)
 		{
 			IExternalBlobConnection blobconn;
-			byte[] identifier;
-			if (ExtractLobData(value, out blobconn, out identifier))
+			byte[] payload;
+			if (ExtractLobData(value, out blobconn, out payload))
 			{
 				var sb = new StringBuilder();
-				foreach (byte b in identifier)
+				foreach (byte b in payload)
 					sb.Append(b.ToString("x2"));
 				return sb.ToString();
 			}
@@ -58,22 +58,22 @@ namespace Lob.NHibernate.Type
 
 		public override object Assemble(object cached, ISessionImplementor session, object owner)
 		{
-			var identifier = cached as byte[];
-			if (identifier == null) return null;
+			var payload = cached as byte[];
+			if (payload == null) return null;
 			IExternalBlobConnection conn = GetExternalBlobConnection(session);
-			return CreateLobInstance(conn, identifier);
+			return CreateLobInstance(conn, payload);
 		}
 
 		public override object Disassemble(object value, ISessionImplementor session, object owner)
 		{
 			if (value == null) return null;
 			IExternalBlobConnection blobconn;
-			byte[] identifier;
-			if (ExtractLobData(value, out blobconn, out identifier))
+			byte[] payload;
+			if (ExtractLobData(value, out blobconn, out payload))
 			{
 				IExternalBlobConnection conn = GetExternalBlobConnection(session);
 				if (conn.Equals(blobconn))
-					return identifier;
+					return payload;
 			}
 			throw new Exception("Unable to cache an unsaved lob.");
 		}
@@ -81,9 +81,9 @@ namespace Lob.NHibernate.Type
 		public override object DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
 		{
 			IExternalBlobConnection blobconn;
-			byte[] identifier;
-			if (ExtractLobData(value, out blobconn, out identifier))
-				return CreateLobInstance(blobconn, identifier);
+			byte[] payload;
+			if (ExtractLobData(value, out blobconn, out payload))
+				return CreateLobInstance(blobconn, payload);
 			return value;
 		}
 
@@ -107,14 +107,14 @@ namespace Lob.NHibernate.Type
 			{
 				IExternalBlobConnection conn = GetExternalBlobConnection(session);
 				IExternalBlobConnection blobconn;
-				byte[] identifier;
-				if (!ExtractLobData(value, out blobconn, out identifier) || !conn.Equals(blobconn)) // Skip writing if an equal connection is used
+				byte[] payload;
+				if (!ExtractLobData(value, out blobconn, out payload) || !conn.Equals(blobconn)) // Skip writing if an equal connection is used
 					using (ExternalBlobWriter writer = conn.OpenWriter())
 					{
 						WriteLobTo(value, writer);
-						identifier = writer.Commit();
+						payload = writer.Commit();
 					}
-				((IDataParameter) cmd.Parameters[index]).Value = identifier;
+				((IDataParameter) cmd.Parameters[index]).Value = payload;
 			}
 		}
 
@@ -131,27 +131,32 @@ namespace Lob.NHibernate.Type
 
 			IExternalBlobConnection conn = GetExternalBlobConnection(session);
 
-			byte[] identifier;
+			byte[] payload;
 
 			if (conn.BlobIdentifierLength == Int32.MaxValue)
 			{
 				var length = (int) rs.GetBytes(index, 0L, null, 0, 0);
-				identifier = new byte[length];
-				rs.GetBytes(index, 0L, identifier, 0, length);
+				payload = new byte[length];
+				rs.GetBytes(index, 0L, payload, 0, length);
 			}
 			else
 			{
-				identifier = new byte[conn.BlobIdentifierLength];
-				var i = (int) rs.GetBytes(index, 0, identifier, 0, identifier.Length);
-				if (i != identifier.Length) throw new Exception("Unknown identifier length. Recieved " + i + " but expected " + identifier.Length + " bytes");
+				payload = new byte[conn.BlobIdentifierLength];
+				var i = (int) rs.GetBytes(index, 0, payload, 0, payload.Length);
+				if (i != payload.Length) throw new Exception("Unknown payload (identifier) length. Recieved " + i + " but expected " + payload.Length + " bytes");
 			}
 
-			return CreateLobInstance(conn, identifier);
+			return CreateLobInstance(conn, payload);
 		}
 
 		public override SqlType[] SqlTypes(IMapping mapping)
 		{
-			return new[] {new SqlType(DbType.Binary, _identifierLength == 0 ? 32 : _identifierLength)};
+			if (PayloadLength == 0 || PayloadLength > 8000)
+			{
+				return new SqlType[] { new BinaryBlobSqlType() };
+			}
+			
+			return new[] {new SqlType(DbType.Binary, PayloadLength == 0 ? 32 : PayloadLength)};			
 		}
 
 		public override int GetColumnSpan(IMapping session)

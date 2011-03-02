@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project ToolsVersion="4.0" DefaultTargets="BuildAll"
+	  xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Import Project="$(MSBuildProjectDirectory)\Tools\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets" />
+	<UsingTask AssemblyFile="$(MSBuildProjectDirectory)\Tools\Gallio\Gallio.MSBuildTasks.dll" TaskName="Gallio" />
+
+	<PropertyGroup>
+		<BUILD_NUMBER Condition="'$(BUILD_NUMBER)' == ''">0</BUILD_NUMBER>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Major>1</Major>
+		<Minor>0</Minor>
+		<Build>$(BUILD_NUMBER)</Build>
+		<Revision>0</Revision>
+		<Configuration Condition="$(Configuration) == ''">Release</Configuration>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<OutputPath>$(MSBuildProjectDirectory)\Output</OutputPath>
+		<SrcPath>$(MSBuildProjectDirectory)\Src</SrcPath>
+		<ReleasePath>$(MSBuildProjectDirectory)\Release</ReleasePath>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<TargetSolutionName>$(SrcPath)\Lob.sln</TargetSolutionName>
+		<ReleaseName>Lob for .Net</ReleaseName>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<RevisionDescription Condition="$(GIT_COMMIT) != ''">$(Major).$(Minor).$(Build) / $(GIT_COMMIT)</RevisionDescription>
+		<RevisionDescription Condition="$(GIT_COMMIT) == ''">$(Major).$(Minor).$(Build)</RevisionDescription>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<DefaultExclude Include="$(MSBuildProjectDirectory)\**\obj\**\*.*" />
+		<DefaultExclude Include="$(MSBuildProjectDirectory)\**\.git\**\*.*" />
+		<DefaultExclude Include="$(MSBuildProjectDirectory)\**\bin\**\*.*" />
+		<DefaultExclude Include="$(MSBuildProjectDirectory)\**\_ReSharper*\**\*.*" />
+		<DefaultExclude Include="$(MSBuildProjectDirectory)\**\*.user" />
+		<DefaultExclude Include="$(MSBuildProjectDirectory)\**\*.suo" />
+		<DefaultExclude Include="$(MSBuildProjectDirectory)\**\*.gpState" />
+		<DefaultExclude Include="$(MSBuildProjectDirectory)\**\*.vshost.*" />
+	</ItemGroup>
+
+	<Target Name="BuildAll" DependsOnTargets="Clean;Compile" />
+
+	<Target Name="ContinuousIntegration" DependsOnTargets="BuildAll;Release;Test" />
+
+	<Target Name="Clean">
+		<MSBuild BuildInParallel="true" Projects="$(TargetSolutionName)" Properties="Configuration=$(Configuration);Product=$(Product)" Targets="Clean" />
+	</Target>
+
+	<Target Name="Compile" DependsOnTargets="CreateAssemblyInfo">
+		<Message Text="Compiling for Build # $(BUILD_NUMBER) and GIT COMMIT # $(GIT_COMMIT)" />
+		<MSBuild BuildInParallel="true" Projects="$(TargetSolutionName)" Properties="Configuration=$(Configuration)" />
+	</Target>
+
+	<ItemGroup>
+		<TestAssemblies Include="$(SrcPath)\Lob.NHibernate.Tests\bin\$(Configuration)\Lob.NHibernate.Tests.dll" />		
+	</ItemGroup>
+
+	<Target Name="Test" DependsOnTargets="Compile;PrepareOutputPath">
+		<Gallio Files="@(TestAssemblies)"
+			WorkingDirectory="%(TestAssemblies.RootDir)%(TestAssemblies.Directory)"
+			ReportDirectory="$(OutputPath)"
+			ReportNameFormat="%(TestAssemblies.FileName).dll$(GallioReport)"
+			ReportTypes="Xml"
+			IgnoreFailures="true" />
+	</Target>
+
+	<Target Name="PrepareOutputPath">
+		<MakeDir Directories="$(OutputPath)" />
+	</Target>
+
+	<Target Name="PrepareReleasePath">
+		<RemoveDir Directories="$(ReleasePath)" />
+		<MakeDir Directories="$(ReleasePath)" />
+	</Target>
+
+	<Target Name="Release" DependsOnTargets="ZipBin;ZipSource" />
+
+	<Target Name="CreateAssemblyInfo">		
+		<Delete Files="src\GlobalAssemblyInfo.cs" />
+		<AssemblyInfo CodeLanguage="CS"
+		  OutputFile="src\GlobalAssemblyInfo.cs"
+		  AssemblyCompany="http://www.devdefined.com/"
+		  AssemblyCopyright="(C) 20011-2012 DevDefined Ltd"
+		  AssemblyTrademark ="Lob for .Net"
+		  ComVisible="false"
+		  AssemblyVersion="$(Major).$(Minor).$(Build).$(Revision)"
+		  AssemblyFileVersion="$(Major).$(Minor).$(Build).$(Revision)" 
+		  AssemblyInformationalVersion="$(RevisionDescription)" />
+	</Target>
+
+	<Target Name="SetVersionInfo">
+		<CreateProperty Value="$(Major).$(Minor).$(Build).$(Revision)">
+			<Output TaskParameter="Value" PropertyName="VersionInfo"/>			
+		</CreateProperty>
+	</Target>
+	
+	<Target Name="ZipBin" DependsOnTargets="SetVersionInfo;PrepareReleasePath">
+		<ItemGroup>
+			<ReleaseBinFiles Include="$(SrcPath)\Lob.NHibernate\bin\$(Configuration)\*.dll" />
+			<ReleaseBinFiles Include="$(SrcPath)\Lob.NHibernate\bin\$(Configuration)\*.pdb" />
+		</ItemGroup>
+		<PropertyGroup>
+			<ReleaseBinZipFileName>$(ReleasePath)\$(ReleaseName)-$(VersionInfo)-$(Configuration)-Binaries.zip</ReleaseBinZipFileName>
+		</PropertyGroup>		
+		<Delete Files="$(ReleaseBinZipFileName)" />		
+		<Zip Files="@(ReleaseBinFiles)" WorkingDirectory="$(SrcPath)\Lob.NHibernate\bin\$(Configuration)\" ZipFileName="$(ReleaseBinZipFileName)" />		
+	</Target>
+
+	<Target Name="ZipSource" DependsOnTargets="SetVersionInfo;PrepareReleasePath">		
+		<ItemGroup>
+			<ReleaseSourceFiles Include="$(SrcPath)\**\*.*" Exclude="@(DefaultExclude)" />
+			<ReleaseSourceFiles Include="$(MSBuildProjectDirectory)\*.*" Exclude="@(DefaultExclude)" />
+		</ItemGroup>		
+		<PropertyGroup>
+			<ReleaseSourceZipFileName>$(ReleasePath)\$(ReleaseName)-$(VersionInfo)-Source.zip</ReleaseSourceZipFileName>
+		</PropertyGroup>		
+		<Delete Files="$(ReleaseSourceZipFileName)" />		
+		<Zip Files="@(ReleaseSourceFiles)"  WorkingDirectory="$(MSBuildProjectDirectory)"	 ZipFileName="$(ReleaseSourceZipFileName)" />	
+	</Target>
+
+</Project>
