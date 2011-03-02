@@ -74,7 +74,7 @@
     <Compile Include="Providers\Migration\MigrationConnection.cs" />
     <Compile Include="Providers\Migration\MigrationConnectionProvider.cs" />
     <Compile Include="Providers\ByteArray\ByteArrayConnection.cs" />
-    <Compile Include="Providers\ByteArray\ByteArrayConnectionProviderr.cs" />
+    <Compile Include="Providers\ByteArray\ByteArrayConnectionProvider.cs" />
     <Compile Include="Providers\ByteArray\ByteArrayWriter.cs" />
     <Compile Include="Environment.cs" />
     <Compile Include="AbstractExternalBlobConnectionProvider.cs" />

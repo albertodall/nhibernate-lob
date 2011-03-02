@@ -26,6 +26,11 @@ namespace Lob.NHibernate.Providers.Migration
 			get { return Math.Max(_from.BlobIdentifierLength, _to.BlobIdentifierLength); }
 		}
 
+		public bool DisassembleRequiresExternalBlob
+		{
+			get { return false; }
+		}
+
 		public void Delete(byte[] blobIdentifier)
 		{
 			_from.Delete(blobIdentifier);

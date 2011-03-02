@@ -26,7 +26,7 @@ namespace Lob.NHibernate.Tests.Providers.ByteArray
 			configuration.SetProperty("connection.driver_class", typeof (SqlClientDriver).AssemblyQualifiedName);
 			configuration.SetProperty("connection.connection_string", TestDatabases.SqlServerLobTests);
 			configuration.SetProperty("proxyfactory.factory_class", typeof (ProxyFactoryFactory).AssemblyQualifiedName);
-			configuration.SetProperty("connection.lob.external.provider", typeof (ByteArrayConnectionProviderr).AssemblyQualifiedName);
+			configuration.SetProperty("connection.lob.external.provider", typeof (ByteArrayConnectionProvider).AssemblyQualifiedName);
 			configuration.SetProperty("show_sql", "true");
 
 			configuration.AddAssembly(typeof (Image).Assembly);

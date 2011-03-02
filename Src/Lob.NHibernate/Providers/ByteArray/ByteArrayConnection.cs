@@ -11,6 +11,11 @@ namespace Lob.NHibernate.Providers.ByteArray
 			get { return Int32.MaxValue; }
 		}
 
+		public override bool DisassembleRequiresExternalBlob
+		{
+			get { return false; }
+		}
+
 		public override void Delete(byte[] blobIdentifier)
 		{
 		}

@@ -67,15 +67,19 @@ namespace Lob.NHibernate.Type
 		public override object Disassemble(object value, ISessionImplementor session, object owner)
 		{
 			if (value == null) return null;
+
 			IExternalBlobConnection blobconn;
-			byte[] payload;
-			if (ExtractLobData(value, out blobconn, out payload))
+			byte[] payload;	
+			bool hasExternalLob = ExtractLobData(value, out blobconn, out payload);
+
+			IExternalBlobConnection conn = GetExternalBlobConnection(session);
+
+			if (conn.DisassembleRequiresExternalBlob && !hasExternalLob)
 			{
-				IExternalBlobConnection conn = GetExternalBlobConnection(session);
-				if (conn.Equals(blobconn))
-					return payload;
+				throw new Exception("Unable to cache an unsaved lob.");
 			}
-			throw new Exception("Unable to cache an unsaved lob.");
+
+			return payload;			
 		}
 
 		public override object DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)

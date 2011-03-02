@@ -12,9 +12,11 @@ namespace Lob.NHibernate
 		protected AbstractExternalBlobConnection()
 		{
 			_openedStreams = new List<WeakReference>();
-		}
+		}		
 
 		public abstract int BlobIdentifierLength { get; }
+
+		public abstract bool DisassembleRequiresExternalBlob { get; }
 
 		public abstract void Delete(byte[] blobIdentifier);
 

@@ -25,12 +25,40 @@ namespace Lob.NHibernate
 			_base.Configure(settings);
 		}
 
+		public IDbConnection GetConnection()
+		{
+			if (_provider == null) return _base.GetConnection();
+
+			return new ExternalBlobDbConnectionWrapper(_base.GetConnection(), _provider.GetConnection());
+		}
+
+		public void CloseConnection(IDbConnection conn)
+		{
+			_base.CloseConnection(conn);
+		}
+
+		public IDriver Driver
+		{
+			get { return new ExternalBlobDriverWrapper(_base.Driver); }
+		}
+
+		public void Dispose()
+		{
+			_base.Dispose();
+		}
+
 		void OverrideDefaultConnectProviderBaseIfSpecified(IDictionary<string, string> settings)
 		{
 			string typeAsString;
+
 			if (settings.TryGetValue(Environment.ConnectionUnderlyingDriverConnectionProvider, out typeAsString))
 			{
-				System.Type providerType = System.Type.GetType(typeAsString);
+				System.Type providerType = typeAsString.Contains(",")
+				                           	? System.Type.GetType(typeAsString, true)
+				                           	: typeof (global::NHibernate.Cfg.Environment).Assembly.GetType(typeAsString, true, true);
+
+				if (providerType == null) throw new Exception("Failed to resolved providerType: " + typeAsString);
+
 				_base = (IConnectionProvider) Activator.CreateInstance(providerType);
 			}
 		}
@@ -58,28 +86,6 @@ namespace Lob.NHibernate
 					}
 				}
 			}
-		}
-
-		public IDbConnection GetConnection()
-		{
-			if (_provider == null) return _base.GetConnection();
-
-			return new ExternalBlobDbConnectionWrapper(_base.GetConnection(), _provider.GetConnection());
-		}
-
-		public void CloseConnection(IDbConnection conn)
-		{
-			_base.CloseConnection(conn);
-		}
-
-		public IDriver Driver
-		{
-			get { return new ExternalBlobDriverWrapper(_base.Driver); }
-		}
-
-		public void Dispose()
-		{
-			_base.Dispose();
 		}
 	}
 }

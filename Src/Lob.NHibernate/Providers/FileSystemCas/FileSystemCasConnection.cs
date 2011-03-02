@@ -33,6 +33,11 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			get { return _hashLength; }
 		}
 
+		public override bool DisassembleRequiresExternalBlob
+		{
+			get { return true; }
+		}
+
 		public override Stream OpenReader(byte[] contentIdentifier)
 		{
 			return new FileStream(GetPath(contentIdentifier), FileMode.Open, FileAccess.Read);

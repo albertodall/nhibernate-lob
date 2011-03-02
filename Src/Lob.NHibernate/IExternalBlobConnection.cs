@@ -7,6 +7,7 @@ namespace Lob.NHibernate
 	public interface IExternalBlobConnection : IDisposable
 	{
 		int BlobIdentifierLength { get; }
+		bool DisassembleRequiresExternalBlob { get; }
 		void Delete(byte[] blobIdentifier);
 		Stream OpenReader(byte[] blobIdentifier);
 		ExternalBlobWriter OpenWriter();

@@ -54,6 +54,11 @@ namespace Lob.NHibernate.Wrappers
 			get { return _cas.BlobIdentifierLength; }
 		}
 
+		public bool DisassembleRequiresExternalBlob
+		{
+			get { return _cas.DisassembleRequiresExternalBlob; }
+		}
+
 		void IExternalBlobConnection.Delete(byte[] fileReference)
 		{
 			_cas.Delete(fileReference);
