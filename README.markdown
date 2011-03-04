@@ -200,7 +200,29 @@ In some cases (often while testing with a database such as Sqlite) you may wish 
 		<add key="connection.lob.driver.provider" value="MyApp.CustomDriverConnectionProvider, MyApp" />
 		...
 	</config>
-  
+
+Quirks
+------
+
+One thing that can trip up some people is that when reading the contents of a Blob, if the underlying connection has been closed then this will fail.
+
+The error you will recieve is an Exception with the message "The ExternalBlobConnection has been closed."
+
+To work around this, ensure the code that fetches the opens a reader for the Blob is wrapped in an explicit transaction i.e.
+
+	using (var tx = session.BeginTransaction()) 
+	{
+		// .. get the model ..
+		
+		// read the contents
+		using (var stream = model.MyBlob.OpenReader())
+		{
+			// read the blob
+		}
+	}
+
+This will ensure the connection is held open for the duration.
+	
 Maintainer
 ----------
 
