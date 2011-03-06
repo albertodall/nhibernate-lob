@@ -68,6 +68,7 @@
     <Compile Include="EmptyClob.cs" />
     <Compile Include="EmptyBlob.cs" />
     <Compile Include="FileBlob.cs" />
+    <Compile Include="IPersistedLob.cs" />
     <Compile Include="LobExtensions.cs" />
     <Compile Include="StringXlob.cs" />
     <Compile Include="WebBlob.cs" />

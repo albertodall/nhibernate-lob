@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Text;
 using System.Xml;
+using Lob.Model;
 using NHibernate;
 using NHibernate.Engine;
 using NHibernate.SqlTypes;
@@ -117,6 +118,7 @@ namespace Lob.NHibernate.Type
 					{
 						WriteLobTo(value, writer);
 						payload = writer.Commit();
+						((IPersistedLob)value).SetPersistedIdentifier(payload, conn);
 					}
 				((IDataParameter) cmd.Parameters[index]).Value = payload;
 			}

@@ -52,5 +52,25 @@ namespace Lob.NHibernate
 			byte[] a = _identifier, b = ex._identifier;
 			return !a.Where((t, i) => t != b[i]).Any();
 		}
+
+		protected override bool GetIsPersisted()
+		{
+			return true;
+		}
+
+		protected override object GetExternalSource()
+		{
+			return _connection;
+		}
+
+		protected override byte[] GetPersistedIdentifier()
+		{
+			return _identifier;
+		}
+
+		protected override void SetPersistedIdentifier(byte[] contents, object externalSource)
+		{
+			throw new InvalidOperationException("You can not set the persisted identifier of an ExternalBlob (it's already been persisted)");
+		}
 	}
 }

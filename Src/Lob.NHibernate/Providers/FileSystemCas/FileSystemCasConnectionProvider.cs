@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Security.AccessControl;
 using System.Web;
 using System.Web.Hosting;
 
@@ -72,7 +73,17 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 				else
 					storagePath = Path.GetFullPath(storagePath);
 			}
-			if (!Directory.Exists(storagePath)) throw new Exception("Storage path does not exist. The root of the path must exist before it can be used for storage.");
+			if (!Directory.Exists(storagePath))
+			{
+				try
+				{
+					Directory.CreateDirectory(storagePath);
+				}
+				catch (Exception ex)
+				{
+					throw new Exception(string.Format("Storage path: {0} does not exist, and an attempt to create it failed.", storagePath), ex);
+				}
+			}
 			_path = storagePath;
 		}
 

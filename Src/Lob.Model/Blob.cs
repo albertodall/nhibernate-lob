@@ -3,9 +3,11 @@ using System.IO;
 
 namespace Lob.Model
 {
-	public abstract class Blob
+	public abstract class Blob : IPersistedLob
 	{
 		const int BufferSize = 0x1000;
+		byte[] _identifier;
+		object _externalSource;
 
 		public static Blob Empty
 		{
@@ -70,5 +72,48 @@ namespace Lob.Model
 		}
 
 		public abstract bool Equals(Blob blob);
+
+		protected virtual bool GetIsPersisted()
+		{
+			return _identifier != null;
+		}
+
+		protected virtual byte[] GetPersistedIdentifier()
+		{
+			return _identifier;
+		}
+
+		protected virtual void SetPersistedIdentifier(byte[] contents, object externalSource)
+		{
+			if (contents == null) throw new ArgumentNullException("contents");
+			if (externalSource == null) throw new ArgumentNullException("externalSource");
+			_identifier = contents;
+			_externalSource = externalSource;
+		}
+
+		protected virtual object GetExternalSource()
+		{
+			return _externalSource;
+		}
+
+		bool IPersistedLob.IsPersisted
+		{
+			get { return GetIsPersisted(); }
+		}
+
+		byte[] IPersistedLob.GetPersistedIdentifier()
+		{
+			return GetPersistedIdentifier();
+		}
+
+		object IPersistedLob.GetExternalStore()
+		{
+			return GetExternalSource();
+		}
+
+		void IPersistedLob.SetPersistedIdentifier(byte[] contents, object externalStore)
+		{
+			SetPersistedIdentifier(contents, externalStore);
+		}
 	}
 }

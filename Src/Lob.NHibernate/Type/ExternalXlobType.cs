@@ -47,6 +47,15 @@ namespace Lob.NHibernate.Type
 			var xlob = lob as ExternalXlob;
 			if (xlob == null)
 			{
+				var persistedLob = lob as IPersistedLob;
+
+				if (persistedLob != null && persistedLob.IsPersisted)
+				{
+					identifier = persistedLob.GetPersistedIdentifier();
+					connection = (IExternalBlobConnection)persistedLob.GetExternalStore();
+					return true;
+				}
+
 				connection = null;
 				identifier = null;
 				return false;

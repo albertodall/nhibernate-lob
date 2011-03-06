@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" assembly="Lob.NHibernate.Tests" namespace="Lob.NHibernate.Tests">
-
 	<class name="Image">
+		<cache usage="read-write" region="Images" />
 		<id name="Id">
 			<generator class="guid" />
 		</id>
