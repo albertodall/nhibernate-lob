@@ -19,6 +19,7 @@ The project is fairly immature, so you will most likely need to implement your o
 
 What's supported
 ----------------
+
 Currently there are two connection providers
 
   - **Lob.NHibernate.Providers.ByteArray.ByteArrayConnectionProvider** - Which allows storing data in a blob/image column (as you probably do today).
@@ -26,10 +27,10 @@ Currently there are two connection providers
 
 Future plans for additional storage providers include:
 
-  - Chunked Sql Table (i.e. using a seperate database table to store file chunks of a fixed say, say 64KB).
+  - Chunked Sql Table (i.e. using a seperate database table to store file chunks of a fixed length, say 64KB, great for databases like MySql that have limited options with regards to streaming large Blobs).
   - File System provider that uses naming inferred from the associated object (i.e. associated entities identifier + some fixed key + property containing file name) - which allows for ease of recovery of lost files in the case of system failure.
   - Support for native streaming blob support in various databases, including support for Sql Server File Streams.
-  - S3 Storage
+  - Amazon S3 Storage
 
 The project is currently built against NHibernate 2.1.0.4000, targeting the .Net Framework 3.5 and uses Visual Studio 2010 project/solution files.
 
@@ -130,7 +131,7 @@ Quick Example
 Project Structure
 -----------------
 
-  - **Lob.Model**  - Persistence Ignorant set of models representing different sources of Blobs/Clobs/XLobs i.e. Web Requests, Empty blobs, From arrays, streams etc.  The base abstract classes Blob, Clob and Xlob provide static convenience members for instantianting these various classes.
+  - **Lob.Model**  - Persistence ignorant set of models representing different sources of Blobs/Clobs/XLobs i.e. Web Requests, Empty blobs, From arrays, streams etc.  The base abstract classes Blob, Clob and Xlob provide static convenience members for instantianting these various classes.
   - **Lob.NHibernate** - Implementation of an external storage provider that wraps the NHibernate connection mechanics combined with some custom types that takes care of saving blobs to external storage.
   - **Lob.NHibernate.Tests** - XUnit.Net Tests for the framework (Very much a WIP as the original library had no associated tests).
   
@@ -162,15 +163,14 @@ Note: Castle ActiveRecord does not support type parameters - to work around this
 
 For the GZip compression method we provide 3 types for that exact purpose:
 
-  - Lob.NHibernate.Type.GzipExternalBlobType
-	- Lob.NHibernate.Type.GzipExternalClobType
-	- Lob.NHibernate.Type.GzipExternalXlobType
-
+ - Lob.NHibernate.Type.GzipExternalBlobType
+ - Lob.NHibernate.Type.GzipExternalClobType
+ - Lob.NHibernate.Type.GzipExternalXlobType
 
 Length Of Field
 ---------------
 
-What gets stored in the database for a blob is called a "payload" - this payload may be of fixed length i.e. an identifier, such as that used by the FileSystemCas implementation.  Or may be an actual blob, as per the BlobArray implementation, or some form of hybrid content i.e. if less then 64K the value is stored as a blob, over 64K  it is stored in some external storage - it's up the implementor of the external provider.
+What gets stored in the database for a blob is called a "payload" - this payload may be of fixed length i.e. an identifier, such as that used by the FileSystemCas implementation.  Or it may be an actual blob, as per the BlobArray implementation, or some form of hybrid content i.e. if less then 64K the value is stored as a blob, over 64K  it is stored in some external storage - it's up the implementor of the external provider.
 
 The maximum length of the payload can be configured via a length property in your mappings i.e.
 
@@ -190,9 +190,9 @@ The reason your normally wish to provide this value is when testing, where you m
 Underlying DriverConnectionProvider 
 -----------------------------------
 
-The Lob.NHibernate implementation works by replacing the DriverConnectionProvider instance most NHibernate users make use of, and replaces it with an "ExternalBlobDriverConnectionProvider".  This class works as a wrapper, instantiating an underlying "DriverConnectionProvider" which then handles creation of the Driver, Connection etc.
+The Lob.NHibernate implementation works by replacing the DriverConnectionProvider instance most NHibernate users make use of, and substitutes it with an "ExternalBlobDriverConnectionProvider".  This class works as a wrapper, instantiating an underlying "DriverConnectionProvider" which then handles creation of the Driver, Connection - and placing wrappers around the drivers/connections created by the underlying provider.
 
-In some cases (often while testing with a database such as Sqlite) you may wish to use an alternative DriverConnectionProvider, to do so you can specify in your nhibernate configuration:
+In some cases (often while testing with a database such as Sqlite, if for instance, you wish to keep the connection open for the duration of the test) you may wish to use an alternative DriverConnectionProvider, to do so you can specify in your nhibernate configuration:
 
 	<config>
 		....
@@ -205,7 +205,7 @@ Garbage Collection
 
 Due the way this library is implemented, deleting an entity which has one or more Blob/Clob/Xlob fields will not delete the underlying resource immediately.
 
-To work around this problem you must perform periodic "garbage collection" on the external storage to remove any storage content that is no longer referenced by the database.
+To work around this "problem" (or feature, depending on how you see it) you must perform periodic "garbage collection" on the external storage to remove any storage content that is no longer referenced by the database.
 
 To do this setup a scheduled background task in your application (something as a simple as starting a thread that contains a sleep/work cycle invoking the garbage collector will do).
 
@@ -223,11 +223,11 @@ Note: If you are just using the ByteArrayConnectionProvider there is no need to 
 Quirks
 ------
 
-One thing that can trip up some people is that when reading the contents of a Blob, if the underlying connection has been closed then this will fail.
+One thing that can trip up some people is that when reading the contents of a Blob, if the underlying connection has been closed, then the read will fail.
 
 The error you will recieve is an Exception with the message "The ExternalBlobConnection has been closed."
 
-To work around this, ensure the code that fetches the opens a reader for the Blob is wrapped in an explicit transaction i.e.
+To work around this, ensure the code that opens a reader for the Blob is wrapped in an explicit transaction i.e.
 
 	using (var tx = session.BeginTransaction()) 
 	{
@@ -240,7 +240,7 @@ To work around this, ensure the code that fetches the opens a reader for the Blo
 		}
 	}
 
-This will ensure the connection is held open for the duration.
+This will ensure the connection is held open long enough for you to have a chance to read the blob's contents.
 
 Additional Resources
 --------------------
