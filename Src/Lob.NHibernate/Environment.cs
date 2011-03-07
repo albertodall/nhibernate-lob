@@ -1,7 +1,4 @@
-﻿using System;
-using NHibernate;
-
-namespace Lob.NHibernate
+﻿namespace Lob.NHibernate
 {
 	public static class Environment
 	{

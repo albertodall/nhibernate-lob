@@ -7,12 +7,32 @@ namespace Lob.Model
 	public abstract class Clob : IPersistedLob
 	{
 		const int BufferSize = 0x800;
-		byte[] _identifier;
 		object _externalSource;
+		byte[] _identifier;
 
 		public static Clob Empty
 		{
 			get { return new EmptyClob(); }
+		}
+
+		bool IPersistedLob.IsPersisted
+		{
+			get { return GetIsPersisted(); }
+		}
+
+		byte[] IPersistedLob.GetPersistedIdentifier()
+		{
+			return GetPersistedIdentifier();
+		}
+
+		object IPersistedLob.GetExternalStore()
+		{
+			return GetExternalSource();
+		}
+
+		void IPersistedLob.SetPersistedIdentifier(byte[] contents, object externalStore)
+		{
+			SetPersistedIdentifier(contents, externalStore);
 		}
 
 		public static Clob Create(string filename, Encoding encoding)
@@ -104,26 +124,6 @@ namespace Lob.Model
 		protected virtual object GetExternalSource()
 		{
 			return _externalSource;
-		}
-
-		bool IPersistedLob.IsPersisted
-		{
-			get { return GetIsPersisted(); }
-		}
-
-		byte[] IPersistedLob.GetPersistedIdentifier()
-		{
-			return GetPersistedIdentifier();
-		}
-
-		object IPersistedLob.GetExternalStore()
-		{
-			return GetExternalSource();
-		}
-
-		void IPersistedLob.SetPersistedIdentifier(byte[] contents, object externalStore)
-		{
-			SetPersistedIdentifier(contents, externalStore);
 		}
 	}
 }

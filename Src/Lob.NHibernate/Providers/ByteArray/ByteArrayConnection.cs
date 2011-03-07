@@ -16,6 +16,11 @@ namespace Lob.NHibernate.Providers.ByteArray
 			get { return false; }
 		}
 
+		public override bool SupportsGarbageCollection
+		{
+			get { return false; }
+		}
+
 		public override void Delete(byte[] blobIdentifier)
 		{
 		}
@@ -37,11 +42,6 @@ namespace Lob.NHibernate.Providers.ByteArray
 		public override bool Equals(IExternalBlobConnection connection)
 		{
 			return connection is ByteArrayConnection;
-		}
-
-		public override bool SupportsGarbageCollection
-		{
-			get { return false; }
 		}
 	}
 }

@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Linq;
 using log4net;
 
 namespace Lob.NHibernate.Providers.FileSystemCas
 {
 	public class FileSystemCasConnection : AbstractExternalBlobConnection
 	{
-		private static readonly ILog log = LogManager.GetLogger(typeof(FileSystemCasConnection));
-
 		const string TemporaryFileBase = "$temp";
+		static readonly ILog log = LogManager.GetLogger(typeof (FileSystemCasConnection));
 		readonly int _hashLength;
 		readonly string _hashName;
 		readonly string _path;
@@ -42,6 +42,11 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			get { return true; }
 		}
 
+		public override bool SupportsGarbageCollection
+		{
+			get { return true; }
+		}
+
 		public override Stream OpenReader(byte[] contentIdentifier)
 		{
 			return new FileStream(GetPath(contentIdentifier), FileMode.Open, FileAccess.Read);
@@ -59,7 +64,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			{
 				if (log.IsDebugEnabled) log.DebugFormat("Could not find file: {0}, skipping deletion (file may have been manually removed in the mean time, or may have an unexpected file extension)", path);
 			}
-				
+
 			DeleteFolder(contentIdentifier);
 		}
 
@@ -70,22 +75,17 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			return _path.Equals(c._path) && _hashName == c._hashName;
 		}
 
-		public override bool SupportsGarbageCollection
-		{
-			get { return true; }
-		}
-
 		public override void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers)
 		{
 			if (log.IsDebugEnabled) log.DebugFormat("Beginning Garbage Collection (total living blob identifiers: {0})", livingBlobIdentifiers.Count);
 
-			var allExistingIdentifiers = GetAllIdentifiersInFolder().ToList();
+			List<byte[]> allExistingIdentifiers = GetAllIdentifiersInFolder().ToList();
 
 			if (log.IsDebugEnabled) log.DebugFormat("Found {0} existing identifiers in path: {1}", allExistingIdentifiers.Count, _path);
 
 			foreach (var existingIdnetifier in allExistingIdentifiers)
 			{
-				if (!ContainsIdentifier(livingBlobIdentifiers,existingIdnetifier))
+				if (!ContainsIdentifier(livingBlobIdentifiers, existingIdnetifier))
 				{
 					if (log.IsDebugEnabled) log.DebugFormat("Deleting file because it is no longer referenced: {0}", GetPath(existingIdnetifier));
 					Delete(existingIdnetifier);
@@ -102,7 +102,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 				if (identifer.SequenceEqual(identifierToFind))
 				{
 					return true;
-				}			
+				}
 			}
 
 			return false;
@@ -156,12 +156,12 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 
 		public IEnumerable<byte[]> GetAllIdentifiersInFolder()
 		{
-			foreach (var firstByteDirectory in Directory.GetDirectories(_path))
+			foreach (string firstByteDirectory in Directory.GetDirectories(_path))
 			{
 				byte firstByte;
 				try
 				{
-					firstByte = byte.Parse(new DirectoryInfo(firstByteDirectory).Name, System.Globalization.NumberStyles.AllowHexSpecifier);
+					firstByte = byte.Parse(new DirectoryInfo(firstByteDirectory).Name, NumberStyles.AllowHexSpecifier);
 				}
 				catch (Exception ex)
 				{
@@ -169,13 +169,13 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 					continue;
 				}
 
-				foreach (var secondByteDirectory in Directory.GetDirectories(firstByteDirectory))
+				foreach (string secondByteDirectory in Directory.GetDirectories(firstByteDirectory))
 				{
 					byte secondByte;
 
 					try
 					{
-						secondByte = byte.Parse(new DirectoryInfo(secondByteDirectory).Name, System.Globalization.NumberStyles.AllowHexSpecifier);
+						secondByte = byte.Parse(new DirectoryInfo(secondByteDirectory).Name, NumberStyles.AllowHexSpecifier);
 					}
 					catch (Exception ex)
 					{
@@ -183,13 +183,13 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 						continue;
 					}
 
-					foreach (var file in Directory.GetFiles(secondByteDirectory))
+					foreach (string file in Directory.GetFiles(secondByteDirectory))
 					{
 						byte[] identifier;
 
 						try
 						{
-							identifier = CreateIdentifier(firstByte, secondByte, Path.GetFileNameWithoutExtension(file));							
+							identifier = CreateIdentifier(firstByte, secondByte, Path.GetFileNameWithoutExtension(file));
 						}
 						catch (Exception	ex)
 						{
@@ -205,14 +205,14 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 
 		byte[] CreateIdentifier(byte firstByte, byte secondByte, string file)
 		{
-			byte[] identifier = new byte[BlobIdentifierLength];
+			var identifier = new byte[BlobIdentifierLength];
 
 			identifier[0] = firstByte;
 			identifier[1] = secondByte;
 
-			for (int i=2; i<identifier.Length; i++)
+			for (int i = 2; i < identifier.Length; i++)
 			{
-				identifier[i] = byte.Parse(file.Substring((i-2)*2, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
+				identifier[i] = byte.Parse(file.Substring((i - 2)*2, 2), NumberStyles.AllowHexSpecifier);
 			}
 
 			return identifier;

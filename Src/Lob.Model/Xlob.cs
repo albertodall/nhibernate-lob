@@ -8,12 +8,32 @@ namespace Lob.Model
 {
 	public abstract class Xlob : IPersistedLob
 	{
-		byte[] _identifier;
 		object _externalSource;
+		byte[] _identifier;
 
 		public static Xlob Empty
 		{
 			get { return new EmptyXlob(); }
+		}
+
+		bool IPersistedLob.IsPersisted
+		{
+			get { return GetIsPersisted(); }
+		}
+
+		byte[] IPersistedLob.GetPersistedIdentifier()
+		{
+			return GetPersistedIdentifier();
+		}
+
+		object IPersistedLob.GetExternalStore()
+		{
+			return GetExternalSource();
+		}
+
+		void IPersistedLob.SetPersistedIdentifier(byte[] contents, object externalStore)
+		{
+			SetPersistedIdentifier(contents, externalStore);
 		}
 
 		public static Xlob Create(Stream stream)
@@ -159,26 +179,6 @@ namespace Lob.Model
 		protected virtual object GetExternalSource()
 		{
 			return _externalSource;
-		}
-
-		bool IPersistedLob.IsPersisted
-		{
-			get { return GetIsPersisted(); }
-		}
-
-		byte[] IPersistedLob.GetPersistedIdentifier()
-		{
-			return GetPersistedIdentifier();
-		}
-
-		object IPersistedLob.GetExternalStore()
-		{
-			return GetExternalSource();
-		}
-
-		void IPersistedLob.SetPersistedIdentifier(byte[] contents, object externalStore)
-		{
-			SetPersistedIdentifier(contents, externalStore);
 		}
 	}
 }

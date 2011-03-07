@@ -12,7 +12,7 @@
 		<property name="Title" />
 		<property name="Contents">
 			<type name="Lob.NHibernate.Type.ExternalBlobType, Lob.NHibernate">
-				<param name="compression">gzip</param>				
+				<param name="compression">gzip</param>
 			</type>
 		</property>
 	</class>

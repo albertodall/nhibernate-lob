@@ -6,12 +6,32 @@ namespace Lob.Model
 	public abstract class Blob : IPersistedLob
 	{
 		const int BufferSize = 0x1000;
-		byte[] _identifier;
 		object _externalSource;
+		byte[] _identifier;
 
 		public static Blob Empty
 		{
 			get { return new EmptyBlob(); }
+		}
+
+		bool IPersistedLob.IsPersisted
+		{
+			get { return GetIsPersisted(); }
+		}
+
+		byte[] IPersistedLob.GetPersistedIdentifier()
+		{
+			return GetPersistedIdentifier();
+		}
+
+		object IPersistedLob.GetExternalStore()
+		{
+			return GetExternalSource();
+		}
+
+		void IPersistedLob.SetPersistedIdentifier(byte[] contents, object externalStore)
+		{
+			SetPersistedIdentifier(contents, externalStore);
 		}
 
 		public static Blob Create(Stream input)
@@ -94,26 +114,6 @@ namespace Lob.Model
 		protected virtual object GetExternalSource()
 		{
 			return _externalSource;
-		}
-
-		bool IPersistedLob.IsPersisted
-		{
-			get { return GetIsPersisted(); }
-		}
-
-		byte[] IPersistedLob.GetPersistedIdentifier()
-		{
-			return GetPersistedIdentifier();
-		}
-
-		object IPersistedLob.GetExternalStore()
-		{
-			return GetExternalSource();
-		}
-
-		void IPersistedLob.SetPersistedIdentifier(byte[] contents, object externalStore)
-		{
-			SetPersistedIdentifier(contents, externalStore);
 		}
 	}
 }

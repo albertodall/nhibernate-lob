@@ -29,19 +29,19 @@ namespace Lob.NHibernate.Tests.Providers.FileSystemCas
 		public void Write_file_filesytem_with_second_level_cache_enabled_and_read_it_back()
 		{
 			Configuration configuration = CreateDefaultConfigurationWithSecondLevelCache();
-			
+
 			CreateDatabaseStructure(configuration);
 
 			ISessionFactory sessionFactory = configuration.BuildSessionFactory();
 
 			var image = new Image
-			{
-				FileName = "test.txt",
-				ContentType = "text/plain",
-				Size = 10,
-				Contents = Blob.Create(new byte[] { 1, 2, 3, 4 }),
-				Title = "test"
-			};
+			            	{
+			            		FileName = "test.txt",
+			            		ContentType = "text/plain",
+			            		Size = 10,
+			            		Contents = Blob.Create(new byte[] {1, 2, 3, 4}),
+			            		Title = "test"
+			            	};
 
 			Guid imageId;
 
@@ -79,7 +79,7 @@ namespace Lob.NHibernate.Tests.Providers.FileSystemCas
 		public void Write_file_to_filesysem_and_read_it_back()
 		{
 			Configuration configuration = CreateDefaultConfiguration();
-			
+
 			CreateDatabaseStructure(configuration);
 
 			ISessionFactory sessionFactory = configuration.BuildSessionFactory();
@@ -135,22 +135,22 @@ namespace Lob.NHibernate.Tests.Providers.FileSystemCas
 			ISessionFactory sessionFactory = configuration.BuildSessionFactory();
 
 			var image1 = new Image
-			            	{
-			            		FileName = "test.txt",
-			            		ContentType = "text/plain",
-			            		Size = 10,
-			            		Contents = Blob.Create(new byte[] {1, 2, 3, 4}),
-			            		Title = "test"
-			            	};
+			             	{
+			             		FileName = "test.txt",
+			             		ContentType = "text/plain",
+			             		Size = 10,
+			             		Contents = Blob.Create(new byte[] {1, 2, 3, 4}),
+			             		Title = "test"
+			             	};
 
 			var image2 = new Image
-			{
-				FileName = "test2.txt",
-				ContentType = "text/plain",
-				Size = 10,
-				Contents = Blob.Create(new byte[] { 4,3,2,1 }),
-				Title = "test2"
-			};
+			             	{
+			             		FileName = "test2.txt",
+			             		ContentType = "text/plain",
+			             		Size = 10,
+			             		Contents = Blob.Create(new byte[] {4, 3, 2, 1}),
+			             		Title = "test2"
+			             	};
 
 			// create image
 
@@ -194,7 +194,7 @@ namespace Lob.NHibernate.Tests.Providers.FileSystemCas
 
 		Configuration CreateDefaultConfigurationWithSecondLevelCache()
 		{
-			var config = CreateDefaultConfiguration();
+			Configuration config = CreateDefaultConfiguration();
 			config.SetProperty("cache.provider_class", "NHibernate.Caches.SysCache.SysCacheProvider, NHibernate.Caches.SysCache");
 			config.SetProperty("cache.use_query_cache", "true");
 			config.SetProperty("cache.use_second_level_cache", "true");
@@ -212,7 +212,7 @@ namespace Lob.NHibernate.Tests.Providers.FileSystemCas
 			configuration.SetProperty("connection.lob.external.provider", typeof (FileSystemCasConnectionProvider).AssemblyQualifiedName);
 			configuration.SetProperty("connection.lob.external.connection_string", string.Format("Path={0};Hash=SHA256", _folder));
 			configuration.SetProperty("show_sql", "true");
-			configuration.AddAssembly(typeof(Image).Assembly);
+			configuration.AddAssembly(typeof (Image).Assembly);
 			return configuration;
 		}
 	}

@@ -6,7 +6,7 @@ using NHibernate.Driver;
 
 namespace Lob.NHibernate.Tests
 {
-	public class StubDriverConnectionProvider: IConnectionProvider
+	public class StubDriverConnectionProvider : IConnectionProvider
 	{
 		public void Dispose()
 		{

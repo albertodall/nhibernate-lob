@@ -48,7 +48,7 @@ END
 
 CLOSE @Cursor DEALLOCATE @Cursor";
 
-			using (var dropConstraintsCommand = new System.Data.SqlClient.SqlCommand(sql, connection))
+			using (var dropConstraintsCommand = new SqlCommand(sql, connection))
 			{
 				dropConstraintsCommand.CommandType = CommandType.Text;
 				dropConstraintsCommand.ExecuteNonQuery();
@@ -57,7 +57,7 @@ CLOSE @Cursor DEALLOCATE @Cursor";
 
 		static void ExecuteForEachTable(SqlConnection connection, string command)
 		{
-			using (var forEachCommand = new System.Data.SqlClient.SqlCommand("sp_MSforeachtable", connection))
+			using (var forEachCommand = new SqlCommand("sp_MSforeachtable", connection))
 			{
 				forEachCommand.CommandType = CommandType.StoredProcedure;
 				forEachCommand.Parameters.AddWithValue("@command1", command);
