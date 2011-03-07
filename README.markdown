@@ -180,14 +180,6 @@ There are also two sentinel values you can use in place of an exact length:
   
 The reason your normally wish to provide this value is when testing, where you may be using SchemaExport to create a test database - in these cases an IExternalBlobConnection implementation will not be available to the custom type, and so it will make the most conservative guess and use a BinaryBlob, where as you may wish to specify an exact length matching the payload size you expect for your chose External Provider.
 
-Additional Resources
---------------------
-
-**Calyptus Blog posts on the original NHibernate.Lob Project**
-
-  - [Calyptus Blog Post #1][1]
-  - [Calyptus Blog Post #2][3]  
-
 Underlying DriverConnectionProvider 
 -----------------------------------
 
@@ -222,7 +214,35 @@ To work around this, ensure the code that fetches the opens a reader for the Blo
 	}
 
 This will ensure the connection is held open for the duration.
-	
+
+Garbage Collection
+------------------
+
+Due the way this library is implemented, deleting an entity which has one or more Blob/Clob/Xlob fields will not delete the underlying resource immediately.
+
+To work around this problem you must perform periodic "garbage collection" on the external storage to remove any storage content that is no longer referenced by the database.
+
+To do this setup a scheduled background task in your application (something as a simple as starting a thread that contains a sleep/work cycle invoking the garbage collector will do).
+
+The garbage collector needs to be passed an NHibernate session - from there it will take care of the rest (it discoveres all the Blob etc. classes/properties via configuration metadata).
+
+	var collector = new ExternalBlobGarbageCollector();
+
+	using (ISession session = sessionFactory.OpenSession())	
+	{
+		collector.Collect(session);
+	}
+
+Note: If you are just using the ByteArrayConnectionProvider there is no need to run Garbage collection in the background.
+
+Additional Resources
+--------------------
+
+**Calyptus Blog posts on the original NHibernate.Lob Project**
+
+  - [Calyptus Blog Post #1][1]
+  - [Calyptus Blog Post #2][3]  
+
 Maintainer
 ----------
 
