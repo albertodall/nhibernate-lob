@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Lob.NHibernate.Providers.Migration
+﻿namespace Lob.NHibernate.Providers.Migration
 {
 	public class MigrationConnectionProvider : AbstractExternalBlobConnectionProvider
 	{
@@ -13,9 +11,21 @@ namespace Lob.NHibernate.Providers.Migration
 			_to = to;
 		}
 
+		public override string ConnectionString
+		{
+			get { return ((AbstractExternalBlobConnectionProvider) _from).ConnectionString ?? ((AbstractExternalBlobConnectionProvider) _to).ConnectionString; }
+			set
+			{
+				((AbstractExternalBlobConnectionProvider) _from).ConnectionString = value;
+				((AbstractExternalBlobConnectionProvider) _to).ConnectionString = value;
+			}
+		}
+
 		public override IExternalBlobConnection GetConnection()
 		{
-			throw new NotImplementedException();
+			IExternalBlobConnection connectionFrom = _from.GetConnection();
+			IExternalBlobConnection connectionTo = _to.GetConnection();
+			return new MigrationConnection(connectionFrom, connectionTo);
 		}
 	}
 }

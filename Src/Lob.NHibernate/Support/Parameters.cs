@@ -13,7 +13,7 @@ namespace Lob.NHibernate.Support
 			length = ParseLength(parameters);
 
 			string compr = parameters == null ? null : parameters["compression"];
-			
+
 			if (string.IsNullOrEmpty(compr))
 			{
 				compression = null;
@@ -73,7 +73,7 @@ namespace Lob.NHibernate.Support
 				compression = GZipCompressor.Instance;
 			else
 			{
-				var compressor = System.Type.GetType(compr);
+				System.Type compressor = System.Type.GetType(compr);
 				compression = (IStreamCompressor) Activator.CreateInstance(compressor);
 				var parameterized = compression as IParameterizedType;
 				if (parameterized != null)
@@ -96,7 +96,7 @@ namespace Lob.NHibernate.Support
 				compression = new XmlTextCompressor(GZipCompressor.Instance);
 			else
 			{
-				var compressor = System.Type.GetType(compr);
+				System.Type compressor = System.Type.GetType(compr);
 				if (typeof (IXmlCompressor).IsAssignableFrom(compressor))
 					compression = (IXmlCompressor) Activator.CreateInstance(compressor);
 				else if (typeof (IStreamCompressor).IsAssignableFrom(compressor))

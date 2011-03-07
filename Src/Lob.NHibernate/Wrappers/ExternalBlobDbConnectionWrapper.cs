@@ -8,13 +8,13 @@ namespace Lob.NHibernate.Wrappers
 {
 	public class ExternalBlobDbConnectionWrapper : DbConnection, IExternalBlobConnection
 	{
-		readonly IExternalBlobConnection _cas;
+		readonly IExternalBlobConnection _externalConnection;
 		internal IDbConnection _db;
 
-		public ExternalBlobDbConnectionWrapper(IDbConnection db, IExternalBlobConnection cas)
+		public ExternalBlobDbConnectionWrapper(IDbConnection db, IExternalBlobConnection externalConnection)
 		{
 			_db = db;
-			_cas = cas;
+			_externalConnection = externalConnection;
 		}
 
 		public override string ConnectionString
@@ -46,53 +46,58 @@ namespace Lob.NHibernate.Wrappers
 		void IDisposable.Dispose()
 		{
 			_db.Dispose();
-			_cas.Dispose();
+			_externalConnection.Dispose();
 		}
 
 		int IExternalBlobConnection.BlobIdentifierLength
 		{
-			get { return _cas.BlobIdentifierLength; }
+			get { return _externalConnection.BlobIdentifierLength; }
 		}
 
 		public bool DisassembleRequiresExternalBlob
 		{
-			get { return _cas.DisassembleRequiresExternalBlob; }
+			get { return _externalConnection.DisassembleRequiresExternalBlob; }
 		}
 
 		void IExternalBlobConnection.Delete(byte[] fileReference)
 		{
-			_cas.Delete(fileReference);
+			_externalConnection.Delete(fileReference);
 		}
 
 		Stream IExternalBlobConnection.OpenReader(byte[] fileReference)
 		{
-			return _cas.OpenReader(fileReference);
+			return _externalConnection.OpenReader(fileReference);
 		}
 
 		byte[] IExternalBlobConnection.Store(Stream stream)
 		{
-			return _cas.Store(stream);
+			return _externalConnection.Store(stream);
 		}
 
 		bool IExternalBlobConnection.Equals(IExternalBlobConnection connection)
 		{
-			if (connection is ExternalBlobDbConnectionWrapper) connection = (connection as ExternalBlobDbConnectionWrapper)._cas;
-			return _cas.Equals(connection);
+			if (connection is ExternalBlobDbConnectionWrapper) connection = (connection as ExternalBlobDbConnectionWrapper)._externalConnection;
+			return _externalConnection.Equals(connection);
+		}
+
+		public bool SupportsGarbageCollection
+		{
+			get { return _externalConnection.SupportsGarbageCollection; }
 		}
 
 		ExternalBlobWriter IExternalBlobConnection.OpenWriter()
 		{
-			return _cas.OpenWriter();
+			return _externalConnection.OpenWriter();
 		}
 
 		void IExternalBlobConnection.ReadInto(byte[] blobIdentifier, Stream output)
 		{
-			_cas.ReadInto(blobIdentifier, output);
+			_externalConnection.ReadInto(blobIdentifier, output);
 		}
 
-		void IExternalBlobConnection.GarbageCollect(IEnumerable<byte[]> livingBlobIdentifiers)
+		void IExternalBlobConnection.GarbageCollect(ICollection<byte[]> livingBlobIdentifiers)
 		{
-			_cas.GarbageCollect(livingBlobIdentifiers);
+			_externalConnection.GarbageCollect(livingBlobIdentifiers);
 		}
 
 		protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)

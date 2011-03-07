@@ -70,7 +70,7 @@ namespace Lob.NHibernate.Type
 			if (value == null) return null;
 
 			IExternalBlobConnection blobconn;
-			byte[] payload;	
+			byte[] payload;
 			bool hasExternalLob = ExtractLobData(value, out blobconn, out payload);
 
 			IExternalBlobConnection conn = GetExternalBlobConnection(session);
@@ -80,7 +80,7 @@ namespace Lob.NHibernate.Type
 				throw new Exception("Unable to cache an unsaved lob.");
 			}
 
-			return payload;			
+			return payload;
 		}
 
 		public override object DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
@@ -118,7 +118,13 @@ namespace Lob.NHibernate.Type
 					{
 						WriteLobTo(value, writer);
 						payload = writer.Commit();
-						((IPersistedLob)value).SetPersistedIdentifier(payload, conn);
+
+						var persistedLob = ((IPersistedLob) value);
+
+						if (!persistedLob.IsPersisted)
+						{
+							((IPersistedLob) value).SetPersistedIdentifier(payload, conn);
+						}
 					}
 				((IDataParameter) cmd.Parameters[index]).Value = payload;
 			}
@@ -159,10 +165,10 @@ namespace Lob.NHibernate.Type
 		{
 			if (PayloadLength == 0 || PayloadLength > 8000)
 			{
-				return new SqlType[] { new BinaryBlobSqlType() };
+				return new SqlType[] {new BinaryBlobSqlType()};
 			}
-			
-			return new[] {new SqlType(DbType.Binary, PayloadLength == 0 ? 32 : PayloadLength)};			
+
+			return new[] {new SqlType(DbType.Binary, PayloadLength == 0 ? 32 : PayloadLength)};
 		}
 
 		public override int GetColumnSpan(IMapping session)

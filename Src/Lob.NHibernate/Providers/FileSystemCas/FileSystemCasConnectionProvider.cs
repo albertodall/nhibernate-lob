@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Security.AccessControl;
 using System.Web;
 using System.Web.Hosting;
 
@@ -94,6 +93,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 
 		public override IExternalBlobConnection GetConnection()
 		{
+			if (_path == null) throw new InvalidOperationException("You can not invoke GetConnection until a ConnectionString has been set");
 			return new FileSystemCasConnection(_path, _hash);
 		}
 	}

@@ -53,6 +53,10 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="NHibernate, Version=0.0.0.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Lib\NHibernate.dll</HintPath>
@@ -71,6 +75,8 @@
     <Compile Include="Compression\IXmlCompressor.cs" />
     <Compile Include="Compression\XmlTextCompressor.cs" />
     <Compile Include="AbstractExternalBlobConnection.cs" />
+    <Compile Include="GarbageCollection\ExternalBlobGarbageCollector.cs" />
+    <Compile Include="GarbageCollection\IExternalBlobGarbageCollector.cs" />
     <Compile Include="Providers\Migration\MigrationConnection.cs" />
     <Compile Include="Providers\Migration\MigrationConnectionProvider.cs" />
     <Compile Include="Providers\ByteArray\ByteArrayConnection.cs" />
@@ -82,6 +88,8 @@
     <Compile Include="ExternalBlob.cs" />
     <Compile Include="ExternalClob.cs" />
     <Compile Include="ExternalXlob.cs" />
+    <Compile Include="Providers\Migration\MigrationFromByteArrayToFileSystemCasProvider.cs" />
+    <Compile Include="Providers\Migration\MigrationFromFileSystemCasToByteArrayProvider.cs" />
     <Compile Include="Type\AbstractExternalBlobType.cs" />
     <Compile Include="Type\ExternalXlobType.cs" />
     <Compile Include="Type\ExternalBlobType.cs" />

@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Linq;
+using log4net;
 
 namespace Lob.NHibernate.Providers.FileSystemCas
 {
 	public class FileSystemCasConnection : AbstractExternalBlobConnection
 	{
+		private static readonly ILog log = LogManager.GetLogger(typeof(FileSystemCasConnection));
+
 		const string TemporaryFileBase = "$temp";
 		readonly int _hashLength;
 		readonly string _hashName;
@@ -46,8 +50,16 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 		public override void Delete(byte[] contentIdentifier)
 		{
 			string path = GetPath(contentIdentifier);
+
 			if (File.Exists(path))
+			{
 				File.Delete(path);
+			}
+			else
+			{
+				if (log.IsDebugEnabled) log.DebugFormat("Could not find file: {0}, skipping deletion (file may have been manually removed in the mean time, or may have an unexpected file extension)", path);
+			}
+				
 			DeleteFolder(contentIdentifier);
 		}
 
@@ -58,9 +70,42 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			return _path.Equals(c._path) && _hashName == c._hashName;
 		}
 
-		public override void GarbageCollect(IEnumerable<byte[]> livingBlobIdentifiers)
+		public override bool SupportsGarbageCollection
 		{
-			throw new NotImplementedException();
+			get { return true; }
+		}
+
+		public override void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers)
+		{
+			if (log.IsDebugEnabled) log.DebugFormat("Beginning Garbage Collection (total living blob identifiers: {0})", livingBlobIdentifiers.Count);
+
+			var allExistingIdentifiers = GetAllIdentifiersInFolder().ToList();
+
+			if (log.IsDebugEnabled) log.DebugFormat("Found {0} existing identifiers in path: {1}", allExistingIdentifiers.Count, _path);
+
+			foreach (var existingIdnetifier in allExistingIdentifiers)
+			{
+				if (!ContainsIdentifier(livingBlobIdentifiers,existingIdnetifier))
+				{
+					if (log.IsDebugEnabled) log.DebugFormat("Deleting file because it is no longer referenced: {0}", GetPath(existingIdnetifier));
+					Delete(existingIdnetifier);
+				}
+			}
+
+			if (log.IsDebugEnabled) log.DebugFormat("Garbage collection finished");
+		}
+
+		static bool ContainsIdentifier(IEnumerable<byte[]> allIdentifiers, byte[] identifierToFind)
+		{
+			foreach (var identifer in allIdentifiers)
+			{
+				if (identifer.SequenceEqual(identifierToFind))
+				{
+					return true;
+				}			
+			}
+
+			return false;
 		}
 
 		public override ExternalBlobWriter OpenWriter()
@@ -107,6 +152,70 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			for (int i = 2; i < contentIdentifier.Length; i++)
 				sb.Append(contentIdentifier[i].ToString("x2"));
 			return Path.Combine(_path, sb.ToString());
+		}
+
+		public IEnumerable<byte[]> GetAllIdentifiersInFolder()
+		{
+			foreach (var firstByteDirectory in Directory.GetDirectories(_path))
+			{
+				byte firstByte;
+				try
+				{
+					firstByte = byte.Parse(new DirectoryInfo(firstByteDirectory).Name, System.Globalization.NumberStyles.AllowHexSpecifier);
+				}
+				catch (Exception ex)
+				{
+					if (log.IsErrorEnabled) log.Error("Exception occured decoding first-byte directory", ex);
+					continue;
+				}
+
+				foreach (var secondByteDirectory in Directory.GetDirectories(firstByteDirectory))
+				{
+					byte secondByte;
+
+					try
+					{
+						secondByte = byte.Parse(new DirectoryInfo(secondByteDirectory).Name, System.Globalization.NumberStyles.AllowHexSpecifier);
+					}
+					catch (Exception ex)
+					{
+						if (log.IsErrorEnabled) log.Error("Exception occured decoding second-byte directory", ex);
+						continue;
+					}
+
+					foreach (var file in Directory.GetFiles(secondByteDirectory))
+					{
+						byte[] identifier;
+
+						try
+						{
+							identifier = CreateIdentifier(firstByte, secondByte, Path.GetFileNameWithoutExtension(file));							
+						}
+						catch (Exception	ex)
+						{
+							if (log.IsErrorEnabled) log.Error(string.Format("Exception occured decoding identifier for file: {0}", file), ex);
+							continue;
+						}
+
+						yield return identifier;
+					}
+				}
+			}
+		}
+
+		byte[] CreateIdentifier(byte firstByte, byte secondByte, string file)
+		{
+			byte[] identifier = new byte[BlobIdentifierLength];
+
+			identifier[0] = firstByte;
+			identifier[1] = secondByte;
+
+			for (int i=2; i<identifier.Length; i++)
+			{
+				identifier[i] = byte.Parse(file.Substring((i-2)*2, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
+			}
+
+			return identifier;
 		}
 
 		#region Nested type: FileSystemCasBlobWriter

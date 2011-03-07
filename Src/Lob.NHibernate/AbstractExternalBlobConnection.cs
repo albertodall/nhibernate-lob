@@ -12,7 +12,9 @@ namespace Lob.NHibernate
 		protected AbstractExternalBlobConnection()
 		{
 			_openedStreams = new List<WeakReference>();
-		}		
+		}
+
+		public abstract bool SupportsGarbageCollection { get; }
 
 		public abstract int BlobIdentifierLength { get; }
 
@@ -20,7 +22,7 @@ namespace Lob.NHibernate
 
 		public abstract void Delete(byte[] blobIdentifier);
 
-		public abstract void GarbageCollect(IEnumerable<byte[]> livingBlobIdentifiers);
+		public abstract void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers);
 
 		public abstract bool Equals(IExternalBlobConnection connection);
 

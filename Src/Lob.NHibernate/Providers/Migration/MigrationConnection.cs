@@ -18,7 +18,7 @@ namespace Lob.NHibernate.Providers.Migration
 		public void Dispose()
 		{
 			_from.Dispose();
-			_to.Dispose();			
+			_to.Dispose();
 		}
 
 		public int BlobIdentifierLength
@@ -61,7 +61,12 @@ namespace Lob.NHibernate.Providers.Migration
 			return _from.Equals(connection);
 		}
 
-		public void GarbageCollect(IEnumerable<byte[]> livingBlobIdentifiers)
+		public bool SupportsGarbageCollection
+		{
+			get { return false; }
+		}
+
+		public void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers)
 		{
 			_from.GarbageCollect(livingBlobIdentifiers);
 		}

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Lob.Model;
+using Lob.NHibernate.GarbageCollection;
 using Lob.NHibernate.Providers.FileSystemCas;
 using NHibernate;
 using NHibernate.ByteCode.Castle;
@@ -122,6 +123,68 @@ namespace Lob.NHibernate.Tests.Providers.FileSystemCas
 					}
 				}
 			}
+		}
+
+		[Fact]
+		public void Garbage_collection_removes_unused_contents()
+		{
+			Configuration configuration = CreateDefaultConfiguration();
+
+			CreateDatabaseStructure(configuration);
+
+			ISessionFactory sessionFactory = configuration.BuildSessionFactory();
+
+			var image1 = new Image
+			            	{
+			            		FileName = "test.txt",
+			            		ContentType = "text/plain",
+			            		Size = 10,
+			            		Contents = Blob.Create(new byte[] {1, 2, 3, 4}),
+			            		Title = "test"
+			            	};
+
+			var image2 = new Image
+			{
+				FileName = "test2.txt",
+				ContentType = "text/plain",
+				Size = 10,
+				Contents = Blob.Create(new byte[] { 4,3,2,1 }),
+				Title = "test2"
+			};
+
+			// create image
+
+			using (ISession session = sessionFactory.OpenSession())
+			{
+				using (ITransaction tx = session.BeginTransaction())
+				{
+					session.Save(image1);
+					session.Save(image2);
+					tx.Commit();
+				}
+			}
+
+			// should have 1 file
+			Assert.Equal(2, Directory.GetFiles(_folder, "*", SearchOption.AllDirectories).Length);
+
+			using (ISession session = sessionFactory.OpenSession())
+			{
+				using (ITransaction tx = session.BeginTransaction())
+				{
+					session.Delete(image1);
+					tx.Commit();
+				}
+			}
+
+			var collector = new ExternalBlobGarbageCollector();
+
+			using (ISession session = sessionFactory.OpenSession())
+			{
+				collector.Collect(session);
+			}
+
+			// should now have no files
+			Assert.Equal(1, Directory.GetFiles(_folder, "*", SearchOption.AllDirectories).Length);
 		}
 
 		void CreateDatabaseStructure(Configuration configuration)

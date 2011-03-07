@@ -56,7 +56,7 @@ namespace Lob.NHibernate.Type
 				if (persistedLob != null && persistedLob.IsPersisted)
 				{
 					identifier = persistedLob.GetPersistedIdentifier();
-					connection = (IExternalBlobConnection)persistedLob.GetExternalStore();
+					connection = (IExternalBlobConnection) persistedLob.GetExternalStore();
 					return true;
 				}
 

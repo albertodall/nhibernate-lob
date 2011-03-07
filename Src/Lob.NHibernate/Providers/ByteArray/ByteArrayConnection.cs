@@ -30,13 +30,18 @@ namespace Lob.NHibernate.Providers.ByteArray
 			return new ByteArrayWriter();
 		}
 
-		public override void GarbageCollect(IEnumerable<byte[]> livingBlobIdentifiers)
+		public override void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers)
 		{
 		}
 
 		public override bool Equals(IExternalBlobConnection connection)
 		{
 			return connection is ByteArrayConnection;
+		}
+
+		public override bool SupportsGarbageCollection
+		{
+			get { return false; }
 		}
 	}
 }
