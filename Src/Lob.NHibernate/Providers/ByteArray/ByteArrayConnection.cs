@@ -35,7 +35,7 @@ namespace Lob.NHibernate.Providers.ByteArray
 			return new ByteArrayWriter();
 		}
 
-		public override void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers)
+		public override void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers, DateTime createdBefore)
 		{
 		}
 

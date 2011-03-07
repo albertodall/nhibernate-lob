@@ -22,7 +22,7 @@ namespace Lob.NHibernate
 
 		public abstract void Delete(byte[] blobIdentifier);
 
-		public abstract void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers);
+		public abstract void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers, DateTime createdBefore);
 
 		public abstract bool Equals(IExternalBlobConnection connection);
 

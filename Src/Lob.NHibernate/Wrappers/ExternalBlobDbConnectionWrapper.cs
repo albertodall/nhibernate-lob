@@ -95,9 +95,9 @@ namespace Lob.NHibernate.Wrappers
 			_externalConnection.ReadInto(blobIdentifier, output);
 		}
 
-		void IExternalBlobConnection.GarbageCollect(ICollection<byte[]> livingBlobIdentifiers)
+		void IExternalBlobConnection.GarbageCollect(ICollection<byte[]> livingBlobIdentifiers, DateTime createdBefore)
 		{
-			_externalConnection.GarbageCollect(livingBlobIdentifiers);
+			_externalConnection.GarbageCollect(livingBlobIdentifiers, createdBefore);
 		}
 
 		protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)

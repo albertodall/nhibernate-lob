@@ -75,11 +75,11 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			return _path.Equals(c._path) && _hashName == c._hashName;
 		}
 
-		public override void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers)
+		public override void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers, DateTime createdBefore)
 		{
 			if (log.IsDebugEnabled) log.DebugFormat("Beginning Garbage Collection (total living blob identifiers: {0})", livingBlobIdentifiers.Count);
 
-			List<byte[]> allExistingIdentifiers = GetAllIdentifiersInFolder().ToList();
+			List<byte[]> allExistingIdentifiers = GetAllIdentifiersInFolderCreatedBefore(createdBefore).ToList();
 
 			if (log.IsDebugEnabled) log.DebugFormat("Found {0} existing identifiers in path: {1}", allExistingIdentifiers.Count, _path);
 
@@ -119,12 +119,20 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			var d = new DirectoryInfo(path);
 			try
 			{
-				if (d.Exists)
+				if (d.Exists && d.GetFiles().Length == 0)
+				{
 					d.Delete();
+				}
+
 				d = d.Parent;
+
 				if (d != null)
-					if (d.Exists)
+				{
+					if (d.Exists && d.GetFiles().Length == 0 && d.GetDirectories().Length == 0)
+					{
 						d.Delete();
+					}
+				}
 			}
 			catch
 			{
@@ -154,7 +162,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			return Path.Combine(_path, sb.ToString());
 		}
 
-		public IEnumerable<byte[]> GetAllIdentifiersInFolder()
+		public IEnumerable<byte[]> GetAllIdentifiersInFolderCreatedBefore(DateTime createdBefore)
 		{
 			foreach (string firstByteDirectory in Directory.GetDirectories(_path))
 			{
@@ -185,6 +193,10 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 
 					foreach (string file in Directory.GetFiles(secondByteDirectory))
 					{
+						var fileInfo = new FileInfo(file);
+
+						if (fileInfo.CreationTime > createdBefore) continue;
+
 						byte[] identifier;
 
 						try

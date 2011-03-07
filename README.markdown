@@ -218,6 +218,8 @@ The garbage collector needs to be passed an NHibernate session - from there it w
 		collector.Collect(session);
 	}
 
+When using garbage collection with an ASP.Net application and the FileSystemCas provider be careful not to store the files within the website virtual directory (i.e. in ~/App_data/attachments) as this will normally result in the application recycling periodically when deletions occur (as these will also delete sub directories, triggering a recycle).  
+	
 Note: If you are just using the ByteArrayConnectionProvider there is no need to run Garbage collection in the background.
 
 Quirks

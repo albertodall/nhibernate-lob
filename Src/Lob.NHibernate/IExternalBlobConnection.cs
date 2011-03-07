@@ -15,6 +15,6 @@ namespace Lob.NHibernate
 		byte[] Store(Stream input);
 		void ReadInto(byte[] blobIdentifier, Stream output);
 		bool Equals(IExternalBlobConnection connection);
-		void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers);
+		void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers, DateTime createdBefore);
 	}
 }

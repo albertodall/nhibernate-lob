@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Lob.NHibernate.Type;
 using NHibernate;
@@ -12,13 +13,18 @@ namespace Lob.NHibernate.GarbageCollection
 	{
 		public void Collect(ISession session)
 		{
+			Collect(session, DateTime.Now);
+		}
+
+		public void Collect(ISession session, DateTime createdBefore)
+		{
 			var connection = ((IExternalBlobConnection) session.Connection);
 
 			if (!connection.SupportsGarbageCollection) return;
 
 			List<byte[]> allIdentifiers = CollectAllIdentifiers(session).ToList();
 
-			connection.GarbageCollect(allIdentifiers);
+			connection.GarbageCollect(allIdentifiers, createdBefore);
 		}
 
 		static IEnumerable<byte[]> CollectAllIdentifiers(ISession session)

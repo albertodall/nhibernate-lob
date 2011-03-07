@@ -66,9 +66,9 @@ namespace Lob.NHibernate.Providers.Migration
 			get { return false; }
 		}
 
-		public void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers)
+		public void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers, DateTime createdBefore)
 		{
-			_from.GarbageCollect(livingBlobIdentifiers);
+			_from.GarbageCollect(livingBlobIdentifiers, createdBefore);
 		}
 	}
 }
