@@ -158,12 +158,19 @@ To enable this, you need to set the compression type as a parameter in the NHibe
 	
 There is a well known type "gzip" which can be used, otherwise you will need to supply the fully qualified type name of a type implementing either the IStreamCompressor or IXmlCompressor (for XLob's) interface.
 
-Note: Castle ActiveRecord does not support type parameters - to work around this you will need to inherit from ExternalBlobType/ExternalClobType/ExternalXlobType and specify the compressor explicity, then use those inherited types when specifying the mappings for your class. 
+Note: Castle ActiveRecord does not support type parameters - to work around this you will need to inherit from ExternalBlobType/ExternalClobType/ExternalXlobType and specify the compressor explicity, then use those inherited types when specifying the mappings for your class.
+
+For the GZip compression method we provide 3 types for that exact purpose:
+
+  - Lob.NHibernate.Type.GzipExternalBlobType
+	- Lob.NHibernate.Type.GzipExternalClobType
+	- Lob.NHibernate.Type.GzipExternalXlobType
+
 
 Length Of Field
 ---------------
 
-What get's store in the database for a blob is called a "payload" - this payload may be of fixed length i.e. an identifier, such as that used by the FileSystemCas implementation.  Or may be an actual blob, as per the BlobArray implementation, or some form of hybride i.e. if less then 64K the value is stored as a blob, over 64K  it is stored in some external storage - it's up the implementor of the external provider.
+What gets stored in the database for a blob is called a "payload" - this payload may be of fixed length i.e. an identifier, such as that used by the FileSystemCas implementation.  Or may be an actual blob, as per the BlobArray implementation, or some form of hybrid content i.e. if less then 64K the value is stored as a blob, over 64K  it is stored in some external storage - it's up the implementor of the external provider.
 
 The maximum length of the payload can be configured via a length property in your mappings i.e.
 
@@ -178,7 +185,7 @@ There are also two sentinel values you can use in place of an exact length:
   - "default" - which will currently resolve to 32.
   - "max" - which will resolve to Int32.Max
   
-The reason your normally wish to provide this value is when testing, where you may be using SchemaExport to create a test database - in these cases an IExternalBlobConnection implementation will not be available to the custom type, and so it will make the most conservative guess and use a BinaryBlob, where as you may wish to specify an exact length matching the payload size you expect for your chose External Provider.
+The reason your normally wish to provide this value is when testing, where you may be using SchemaExport to create a test database - in these cases an IExternalBlobConnection implementation will not be available to the custom type, and so it will make the most conservative guess and use a BinaryBlob, where as you may wish to specify an exact length matching the payload size you expect for your chosen External Provider.
 
 Underlying DriverConnectionProvider 
 -----------------------------------
@@ -192,6 +199,26 @@ In some cases (often while testing with a database such as Sqlite) you may wish 
 		<add key="connection.lob.driver.provider" value="MyApp.CustomDriverConnectionProvider, MyApp" />
 		...
 	</config>
+
+Garbage Collection
+------------------
+
+Due the way this library is implemented, deleting an entity which has one or more Blob/Clob/Xlob fields will not delete the underlying resource immediately.
+
+To work around this problem you must perform periodic "garbage collection" on the external storage to remove any storage content that is no longer referenced by the database.
+
+To do this setup a scheduled background task in your application (something as a simple as starting a thread that contains a sleep/work cycle invoking the garbage collector will do).
+
+The garbage collector needs to be passed an NHibernate session - from there it will take care of the rest (it discoveres all the Blob etc. classes/properties via configuration metadata).
+
+	var collector = new ExternalBlobGarbageCollector();
+
+	using (ISession session = sessionFactory.OpenSession())	
+	{
+		collector.Collect(session);
+	}
+
+Note: If you are just using the ByteArrayConnectionProvider there is no need to run Garbage collection in the background.
 
 Quirks
 ------
@@ -214,26 +241,6 @@ To work around this, ensure the code that fetches the opens a reader for the Blo
 	}
 
 This will ensure the connection is held open for the duration.
-
-Garbage Collection
-------------------
-
-Due the way this library is implemented, deleting an entity which has one or more Blob/Clob/Xlob fields will not delete the underlying resource immediately.
-
-To work around this problem you must perform periodic "garbage collection" on the external storage to remove any storage content that is no longer referenced by the database.
-
-To do this setup a scheduled background task in your application (something as a simple as starting a thread that contains a sleep/work cycle invoking the garbage collector will do).
-
-The garbage collector needs to be passed an NHibernate session - from there it will take care of the rest (it discoveres all the Blob etc. classes/properties via configuration metadata).
-
-	var collector = new ExternalBlobGarbageCollector();
-
-	using (ISession session = sessionFactory.OpenSession())	
-	{
-		collector.Collect(session);
-	}
-
-Note: If you are just using the ByteArrayConnectionProvider there is no need to run Garbage collection in the background.
 
 Additional Resources
 --------------------
