@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using NHibernate.Driver;
@@ -39,6 +40,11 @@ namespace Lob.NHibernate.Wrappers
 		public void PrepareCommand(IDbCommand command)
 		{
 			_base.PrepareCommand(command);
+		}
+
+		public void ExpandQueryParameters(IDbCommand cmd, SqlString sqlString)
+		{
+			_base.ExpandQueryParameters(cmd, sqlString);
 		}
 
 		public bool SupportsMultipleOpenReaders

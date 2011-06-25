@@ -34,6 +34,11 @@ namespace Lob.NHibernate.Tests
 			throw new NotImplementedException();
 		}
 
+		public void ExpandQueryParameters(IDbCommand cmd, SqlString sqlString)
+		{
+			throw new NotImplementedException();
+		}
+
 		public bool SupportsMultipleOpenReaders
 		{
 			get { throw new NotImplementedException(); }
