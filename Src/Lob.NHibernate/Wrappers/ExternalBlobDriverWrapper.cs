@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using NHibernate.Driver;
+using NHibernate.Engine;
 using NHibernate.SqlCommand;
 using NHibernate.SqlTypes;
 
@@ -39,7 +40,15 @@ namespace Lob.NHibernate.Wrappers
 
 		public void PrepareCommand(IDbCommand command)
 		{
-			_base.PrepareCommand(command);
+			// we must unwrap command before preparing it, as the OracleDriver and OracleClientDriver
+			// make use of PrepareCommand and reflection to tweak some settings of the command which are not
+			// part of the DbCommand base class (so fails if invoked on our DB Command wrapper)
+
+			var wrapper = command as ExternalBlobDbCommandWrapper;
+
+			var unwrappedCommand = (wrapper != null) ? wrapper.UnderlyingCommand : command;
+
+			_base.PrepareCommand(unwrappedCommand);
 		}
 
 		public void ExpandQueryParameters(IDbCommand cmd, SqlString sqlString)

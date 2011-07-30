@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using NHibernate.Driver;
+using NHibernate.Engine;
 using NHibernate.SqlCommand;
 using NHibernate.SqlTypes;
 

@@ -14,6 +14,11 @@ namespace Lob.NHibernate.Wrappers
 			_conn = conn;
 		}
 
+		public virtual DbCommand UnderlyingCommand
+		{
+			get { return _cmd; }
+		}
+
 		public override string CommandText
 		{
 			get { return _cmd.CommandText; }
