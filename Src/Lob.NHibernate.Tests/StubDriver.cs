@@ -49,10 +49,20 @@ namespace Lob.NHibernate.Tests
 		{
 			get { throw new NotImplementedException(); }
 		}
+        
+        public void AdjustCommand(IDbCommand command)
+        {
+            throw new NotImplementedException();
+        }
 
-		public string MultipleQueriesSeparator
-		{
-			get { throw new NotImplementedException(); }
-		}
-	}
+        public IResultSetsCommand GetResultSetsCommand(ISessionImplementor session)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveUnusedCommandParameters(IDbCommand cmd, SqlString sqlString)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

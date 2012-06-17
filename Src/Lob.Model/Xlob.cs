@@ -155,6 +155,11 @@ namespace Lob.Model
 			if (x == null) return false;
 			return Equals(x);
 		}
+        
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
 
 		public abstract bool Equals(Xlob xlob);
 

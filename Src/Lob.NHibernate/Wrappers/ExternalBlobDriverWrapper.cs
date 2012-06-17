@@ -66,14 +66,32 @@ namespace Lob.NHibernate.Wrappers
 			get { return _base.SupportsMultipleQueries; }
 		}
 
-		public string MultipleQueriesSeparator
-		{
-			get { return _base.MultipleQueriesSeparator; }
-		}
-
 		public IDbDataParameter GenerateParameter(IDbCommand command, string name, SqlType sqlType)
 		{
 			return _base.GenerateParameter(command, name, sqlType);
 		}
-	}
+
+        public void AdjustCommand(IDbCommand command)
+        {
+            var wrapper = command as ExternalBlobDbCommandWrapper;
+
+            var unwrappedCommand = (wrapper != null) ? wrapper.UnderlyingCommand : command;
+
+            _base.AdjustCommand(unwrappedCommand);
+        }
+
+        public IResultSetsCommand GetResultSetsCommand(ISessionImplementor session)
+        {
+            return _base.GetResultSetsCommand(session);
+        }
+
+        public void RemoveUnusedCommandParameters(IDbCommand command, SqlString sqlString)
+        {
+            var wrapper = command as ExternalBlobDbCommandWrapper;
+
+            var unwrappedCommand = (wrapper != null) ? wrapper.UnderlyingCommand : command;
+
+            _base.RemoveUnusedCommandParameters(unwrappedCommand, sqlString);
+        }
+    }
 }

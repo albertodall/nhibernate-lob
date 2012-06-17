@@ -91,8 +91,13 @@ namespace Lob.Model
 			return Equals(b);
 		}
 
-		public abstract bool Equals(Blob blob);
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
 
+		public abstract bool Equals(Blob blob);
+        
 		protected virtual bool GetIsPersisted()
 		{
 			return _identifier != null;

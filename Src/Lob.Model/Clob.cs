@@ -101,6 +101,11 @@ namespace Lob.Model
 			return Equals(c);
 		}
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
 		public abstract bool Equals(Clob clob);
 
 		protected virtual bool GetIsPersisted()
