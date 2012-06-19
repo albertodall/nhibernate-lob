@@ -8,6 +8,6 @@ Release/
 *.suo
 *.user
 *.cache
-
+*.gpState
 /src/GlobalAssemblyInfo.cs
 *.svn
