@@ -151,17 +151,30 @@ namespace Lob.NHibernate.Type
             {
                 var length = (int) rs.GetBytes(index, 0L, null, 0, 0);
                 payload = new byte[length];
-                rs.GetBytes(index, 0L, payload, 0, length);
+                // The if here makes MySql happy (See https://nhibernate.jira.com/browse/NH-2096 for details)
+                if (length > 0)
+                {
+                    rs.GetBytes(index, 0L, payload, 0, length);
+                }
             }
             else
             {
                 payload = new byte[conn.BlobIdentifierLength];
 
-                var i = (int) rs.GetBytes(index, 0, payload, 0, payload.Length);
-
-                if (i != payload.Length)
+                // The if here makes MySql happy (See https://nhibernate.jira.com/browse/NH-2096 for details)
+                if (payload.Length > 0)
                 {
-                    if (Logger.IsErrorEnabled) Logger.ErrorFormat("Unknown payload (identifier) length. Recieved {0} but expected {1} bytes for owner: {2}", i, payload.Length, owner);
+                    var i = (int) rs.GetBytes(index, 0, payload, 0, payload.Length);
+
+                    if (i != payload.Length)
+                    {
+                        if (Logger.IsErrorEnabled) Logger.ErrorFormat("Unknown payload (identifier) length. Recieved {0} but expected {1} bytes for owner: {2}", i, payload.Length, owner);
+                        return null;
+                    }
+                }
+                else
+                {
+                    if (Logger.IsErrorEnabled) Logger.ErrorFormat("Unknown payload (identifier) length. Recieved 0 but expected {0} bytes for owner: {1}", payload.Length, owner);
                     return null;
                 }
             }
