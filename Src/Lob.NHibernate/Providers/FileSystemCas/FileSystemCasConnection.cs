@@ -246,17 +246,18 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 
 				_hash = connection._hashName == null ? new SHA1CryptoServiceProvider() : HashAlgorithm.Create(connection._hashName);
 				if (_hash == null) throw new Exception("Missing hash algorithm: " + connection._hashName);
-				var r = new Random();
-				string temp;
-				int i = 0;
+				
+                string temp;
+				
 				do
 				{
-					if (i > 100) throw new Exception("Unable to find a random temporary filename for writing.");
-					temp = Path.Combine(connection._path, TemporaryFileBase + r.Next().ToString("x"));
-					i++;
+				    Guid unique = Guid.NewGuid();
+					temp = Path.Combine(connection._path, TemporaryFileBase + unique);					
 				} while (File.Exists(temp));
+
 				_tempStream = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None);
-				_tempFile = temp;
+				
+                _tempFile = temp;
 			}
 
 			public override bool CanTimeout
