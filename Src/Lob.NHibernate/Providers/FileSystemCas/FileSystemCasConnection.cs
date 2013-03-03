@@ -342,10 +342,12 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 					var t = new FileInfo(_tempFile);
 					if (f.Length != t.Length)
 						throw new IOException("A file with the same hash code but a different length already exists. This is very unlikely. There might be a transfer issue.");
-					t.Delete();
+				    AttemptDelete(t);
 				}
 				else
-					File.Move(_tempFile, path);
+				{
+				    AttemptMove(path);
+				}
 
 				_tempStream = null;
 				_tempFile = null;
@@ -354,20 +356,38 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 				return id;
 			}
 
-			protected override void Dispose(bool disposing)
+		    void AttemptDelete(FileInfo fileInfo)
+		    {
+		        try
+		        {
+                    fileInfo.Delete();
+		        }
+                catch (Exception ex)
+                {
+                    log.Error(string.Format("Unable to delete file due access exception, this could indicate the file is still in use - please manually remove the file '{0}'", fileInfo.FullName), ex);
+                }             
+		    }
+
+		    void AttemptMove(string path)
+		    {
+                try
+                {
+                    File.Move(_tempFile, path);
+                }
+                catch (System.IO.IOException ex)
+                {
+                    log.Error(string.Format("I/O Exception occured while moving file '{0}', this may be OK if multiple threads are attempting to store the same LOB", path),ex);
+                }
+		    }
+
+		    protected override void Dispose(bool disposing)
 			{
 				if (_tempStream != null)
 					lock (this)
 					{
 						_tempStream.Dispose();
 						_tempStream = null;
-						try
-						{
-							File.Delete(_tempFile);
-						}
-						catch
-						{
-						}
+						AttemptDelete(new FileInfo(_tempFile));
 						_tempFile = null;
 					}
 				if (disposing)
