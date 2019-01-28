@@ -4,7 +4,7 @@ using Lob.Model;
 using Lob.NHibernate.GarbageCollection;
 using Lob.NHibernate.Providers.FileSystemCas;
 using NHibernate;
-using NHibernate.ByteCode.Castle;
+using NHibernate.Cache;
 using NHibernate.Cfg;
 using NHibernate.Dialect;
 using NHibernate.Driver;
@@ -195,7 +195,7 @@ namespace Lob.NHibernate.Tests.Providers.FileSystemCas
 		Configuration CreateDefaultConfigurationWithSecondLevelCache()
 		{
 			Configuration config = CreateDefaultConfiguration();
-			config.SetProperty("cache.provider_class", "NHibernate.Caches.SysCache.SysCacheProvider, NHibernate.Caches.SysCache");
+            config.SetProperty("cache.provider_class", typeof(HashtableCacheProvider).FullName);
 			config.SetProperty("cache.use_query_cache", "true");
 			config.SetProperty("cache.use_second_level_cache", "true");
 			return config;
@@ -208,7 +208,6 @@ namespace Lob.NHibernate.Tests.Providers.FileSystemCas
 			configuration.SetProperty("dialect", typeof (MsSql2008Dialect).AssemblyQualifiedName);
 			configuration.SetProperty("connection.driver_class", typeof (SqlClientDriver).AssemblyQualifiedName);
 			configuration.SetProperty("connection.connection_string", TestDatabases.SqlServerLobTests);
-			configuration.SetProperty("proxyfactory.factory_class", typeof (ProxyFactoryFactory).AssemblyQualifiedName);
 			configuration.SetProperty("connection.lob.external.provider", typeof (FileSystemCasConnectionProvider).AssemblyQualifiedName);
 			configuration.SetProperty("connection.lob.external.connection_string", string.Format("Path={0};Hash=SHA256", _folder));
 			configuration.SetProperty("show_sql", "true");

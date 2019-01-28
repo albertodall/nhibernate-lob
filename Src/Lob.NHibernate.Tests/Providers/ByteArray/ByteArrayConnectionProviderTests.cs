@@ -3,7 +3,7 @@ using System.IO;
 using Lob.Model;
 using Lob.NHibernate.Providers.ByteArray;
 using NHibernate;
-using NHibernate.ByteCode.Castle;
+using NHibernate.Bytecode;
 using NHibernate.Cfg;
 using NHibernate.Dialect;
 using NHibernate.Driver;
@@ -25,7 +25,6 @@ namespace Lob.NHibernate.Tests.Providers.ByteArray
 			configuration.SetProperty("dialect", typeof (MsSql2008Dialect).AssemblyQualifiedName);
 			configuration.SetProperty("connection.driver_class", typeof (SqlClientDriver).AssemblyQualifiedName);
 			configuration.SetProperty("connection.connection_string", TestDatabases.SqlServerLobTests);
-			configuration.SetProperty("proxyfactory.factory_class", typeof (ProxyFactoryFactory).AssemblyQualifiedName);
 			configuration.SetProperty("connection.lob.external.provider", typeof (ByteArrayConnectionProvider).AssemblyQualifiedName);
 			configuration.SetProperty("show_sql", "true");
 

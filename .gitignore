@@ -11,3 +11,4 @@ Release/
 *.gpState
 /src/GlobalAssemblyInfo.cs
 *.svn
+.vs

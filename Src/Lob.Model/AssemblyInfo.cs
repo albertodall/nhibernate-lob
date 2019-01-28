@@ -9,6 +9,6 @@ using System.Security;
 [assembly: AssemblyProduct("Lob.Model")]
 [assembly: AssemblyCopyright("Copyright © Calyptus Life AB 2009")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyVersion("1.0.0.*")]
+[assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: AllowPartiallyTrustedCallers]
