@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net40</TargetFramework>
@@ -25,6 +25,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Lob.NHibernate\Lob.NHibernate.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="*.hbm.xml" />
+    <EmbeddedResource Include="*.hbm.xml" />
   </ItemGroup>
 
 </Project>
