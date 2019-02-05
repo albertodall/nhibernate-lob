@@ -32,7 +32,7 @@ Future plans for additional storage providers include:
   - Support for native streaming blob support in various databases, including support for Sql Server File Streams.
   - Amazon S3 Storage
 
-The project is currently built against NHibernate 2.1.0.4000, targeting the .Net Framework 3.5 and uses Visual Studio 2010 project/solution files.
+The project is currently built against NHibernate 5.1.0, targeting the .Net Framework 4.6.1 and uses Visual Studio 2017 project/solution files.
 
 Types of Large Object
 ---------------------

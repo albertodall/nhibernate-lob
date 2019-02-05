@@ -5,14 +5,15 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using log4net;
+using NHibernate;
 
 namespace Lob.NHibernate.Providers.FileSystemCas
 {
 	public class FileSystemCasConnection : AbstractExternalBlobConnection
 	{
+		static readonly INHibernateLogger Logger = NHibernateLogger.For(typeof (FileSystemCasConnection));
+
 		const string TemporaryFileBase = "$temp";
-		static readonly ILog log = LogManager.GetLogger(typeof (FileSystemCasConnection));
 		readonly int _hashLength;
 		readonly string _hashName;
 		readonly string _path;
@@ -62,7 +63,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			}
 			else
 			{
-				if (log.IsDebugEnabled) log.DebugFormat("Could not find file: {0}, skipping deletion (file may have been manually removed in the mean time, or may have an unexpected file extension)", path);
+				if (Logger.IsDebugEnabled()) Logger.Debug("Could not find file: {0}, skipping deletion (file may have been manually removed in the mean time, or may have an unexpected file extension)", path);
 			}
 
 			DeleteFolder(contentIdentifier);
@@ -77,22 +78,22 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 
 		public override void GarbageCollect(ICollection<byte[]> livingBlobIdentifiers, DateTime createdBefore)
 		{
-			if (log.IsDebugEnabled) log.DebugFormat("Beginning Garbage Collection (total living blob identifiers: {0})", livingBlobIdentifiers.Count);
+			if (Logger.IsDebugEnabled()) Logger.Debug("Beginning Garbage Collection (total living blob identifiers: {0})", livingBlobIdentifiers.Count);
 
 			List<byte[]> allExistingIdentifiers = GetAllIdentifiersInFolderCreatedBefore(createdBefore).ToList();
 
-			if (log.IsDebugEnabled) log.DebugFormat("Found {0} existing identifiers in path: {1}", allExistingIdentifiers.Count, _path);
+			if (Logger.IsDebugEnabled()) Logger.Debug("Found {0} existing identifiers in path: {1}", allExistingIdentifiers.Count, _path);
 
 			foreach (var existingIdnetifier in allExistingIdentifiers)
 			{
 				if (!ContainsIdentifier(livingBlobIdentifiers, existingIdnetifier))
 				{
-					if (log.IsDebugEnabled) log.DebugFormat("Deleting file because it is no longer referenced: {0}", GetPath(existingIdnetifier));
+					if (Logger.IsDebugEnabled()) Logger.Debug("Deleting file because it is no longer referenced: {0}", GetPath(existingIdnetifier));
 					Delete(existingIdnetifier);
 				}
 			}
 
-			if (log.IsDebugEnabled) log.DebugFormat("Garbage collection finished");
+			if (Logger.IsDebugEnabled()) Logger.Debug("Garbage collection finished");
 		}
 
 		static bool ContainsIdentifier(IEnumerable<byte[]> allIdentifiers, byte[] identifierToFind)
@@ -173,7 +174,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 				}
 				catch (Exception ex)
 				{
-					if (log.IsErrorEnabled) log.Error("Exception occured decoding first-byte directory", ex);
+					if (Logger.IsErrorEnabled()) Logger.Error(ex, "Exception occured decoding first-byte directory");
 					continue;
 				}
 
@@ -187,7 +188,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 					}
 					catch (Exception ex)
 					{
-						if (log.IsErrorEnabled) log.Error("Exception occured decoding second-byte directory", ex);
+						if (Logger.IsErrorEnabled()) Logger.Error(ex, "Exception occured decoding second-byte directory");
 						continue;
 					}
 
@@ -205,7 +206,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 						}
 						catch (Exception	ex)
 						{
-							if (log.IsErrorEnabled) log.Error(string.Format("Exception occured decoding identifier for file: {0}", file), ex);
+							if (Logger.IsErrorEnabled()) Logger.Error(ex, "Exception occured decoding identifier for file: {0}", file);
 							continue;
 						}
 
@@ -364,7 +365,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 		        }
                 catch (Exception ex)
                 {
-                    log.Error(string.Format("Unable to delete file due access exception, this could indicate the file is still in use - please manually remove the file '{0}'", fileInfo.FullName), ex);
+                    Logger.Error(ex, "Unable to delete file due access exception, this could indicate the file is still in use - please manually remove the file '{0}'", fileInfo.FullName);
                 }             
 		    }
 
@@ -376,7 +377,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
                 }
                 catch (System.IO.IOException ex)
                 {
-                    log.Error(string.Format("I/O Exception occured while moving file '{0}', this may be OK if multiple threads are attempting to store the same LOB", path),ex);
+                    Logger.Error(ex, "I/O Exception occured while moving file '{0}', this may be OK if multiple threads are attempting to store the same LOB", path);
                 }
 		    }
 

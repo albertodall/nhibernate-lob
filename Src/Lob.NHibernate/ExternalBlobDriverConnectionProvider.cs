@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
+using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
 using Lob.NHibernate.Wrappers;
 using NHibernate.Connection;
 using NHibernate.Driver;
@@ -18,6 +20,8 @@ namespace Lob.NHibernate
 			_base = new DriverConnectionProvider();
 		}
 
+		public IDriver Driver => new ExternalBlobDriverWrapper(_base.Driver);
+
 		public void Configure(IDictionary<string, string> settings)
 		{
 			CreateBlobProviderFromConfiguration(settings);
@@ -25,21 +29,26 @@ namespace Lob.NHibernate
 			_base.Configure(settings);
 		}
 
-		public IDbConnection GetConnection()
+		public DbConnection GetConnection()
 		{
-			if (_provider == null) return _base.GetConnection();
+			var connection = _base.GetConnection();
+			
+			if (_provider == null) return connection;
 
-			return new ExternalBlobDbConnectionWrapper(_base.GetConnection(), _provider.GetConnection());
+			return new ExternalBlobDbConnectionWrapper(connection, _provider.GetConnection());
 		}
 
-		public void CloseConnection(IDbConnection conn)
+		public async Task<DbConnection> GetConnectionAsync(CancellationToken cancellationToken)
+		{
+			var connection = await _base.GetConnectionAsync(cancellationToken);
+			if (_provider == null) return connection;
+
+			return new ExternalBlobDbConnectionWrapper(connection, _provider.GetConnection());
+		}
+
+		public void CloseConnection(DbConnection conn)
 		{
 			_base.CloseConnection(conn);
-		}
-
-		public IDriver Driver
-		{
-			get { return new ExternalBlobDriverWrapper(_base.Driver); }
 		}
 
 		public void Dispose()

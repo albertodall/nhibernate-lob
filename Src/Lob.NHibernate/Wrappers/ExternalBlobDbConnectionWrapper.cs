@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -11,7 +11,7 @@ namespace Lob.NHibernate.Wrappers
 		readonly IExternalBlobConnection _externalConnection;
 		internal IDbConnection _db;
 
-		public ExternalBlobDbConnectionWrapper(IDbConnection db, IExternalBlobConnection externalConnection)
+		public ExternalBlobDbConnectionWrapper(DbConnection db, IExternalBlobConnection externalConnection)
 		{
 			_db = db;
 			_externalConnection = externalConnection;

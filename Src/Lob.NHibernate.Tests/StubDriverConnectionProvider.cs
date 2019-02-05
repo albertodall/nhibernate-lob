@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
 using NHibernate.Connection;
 using NHibernate.Driver;
 
@@ -16,18 +18,20 @@ namespace Lob.NHibernate.Tests
 		{
 		}
 
-		public void CloseConnection(IDbConnection conn)
+		public void CloseConnection(DbConnection conn)
 		{
 		}
 
-		public IDbConnection GetConnection()
+		public DbConnection GetConnection()
+		{
+			throw new NotImplementedException();
+		}
+	
+		public Task<DbConnection> GetConnectionAsync(CancellationToken cancellationToken)
 		{
 			throw new NotImplementedException();
 		}
 
-		public IDriver Driver
-		{
-			get { return new StubDriver(); }
-		}
+		public IDriver Driver => new StubDriver();
 	}
 }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Text;
-using System.Xml;
+using System.Threading;
+using System.Threading.Tasks;
 using Lob.Model;
 using NHibernate;
 using NHibernate.Engine;
@@ -14,7 +16,7 @@ namespace Lob.NHibernate.Type
 {
     public abstract class AbstractExternalBlobType : AbstractType
     {
-        protected static readonly IInternalLogger Logger = LoggerProvider.LoggerFor(typeof (AbstractExternalBlobType));
+        protected static readonly INHibernateLogger Logger = NHibernateLogger.For(typeof(AbstractExternalBlobType));
 
         protected int PayloadLength { get; set; }
 
@@ -85,7 +87,7 @@ namespace Lob.NHibernate.Type
             return payload;
         }
 
-        public override object DeepCopy(object value, EntityMode entityMode, ISessionFactoryImplementor factory)
+        public override object DeepCopy(object value, ISessionFactoryImplementor factory)
         {
             IExternalBlobConnection blobconn;
             byte[] payload;
@@ -99,12 +101,23 @@ namespace Lob.NHibernate.Type
             return original;
         }
 
-        public override void NullSafeSet(IDbCommand cmd, object value, int index, bool[] settable, ISessionImplementor session)
+        public override Task<object> ReplaceAsync(object original, object current, ISessionImplementor session, object owner, IDictionary copiedAlready, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(original);
+        }
+
+        public override void NullSafeSet(DbCommand cmd, object value, int index, bool[] settable, ISessionImplementor session)
         {
             if (settable[0]) NullSafeSet(cmd, value, index, session);
         }
-
-        public override void NullSafeSet(IDbCommand cmd, object value, int index, ISessionImplementor session)
+               
+        public override Task NullSafeSetAsync(DbCommand cmd, object value, int index, bool[] settable, ISessionImplementor session, CancellationToken cancellationToken)
+        {
+            if (settable[0]) return NullSafeSetAsync(cmd, value, index, session, cancellationToken);
+            return Task.CompletedTask;
+        }
+        
+        public override void NullSafeSet(DbCommand cmd, object value, int index, ISessionImplementor session)
         {
             if (value == null)
             {
@@ -132,12 +145,29 @@ namespace Lob.NHibernate.Type
             }
         }
 
-        public override object NullSafeGet(IDataReader rs, string[] names, ISessionImplementor session, object owner)
+        public override Task NullSafeSetAsync(DbCommand cmd, object value, int index, ISessionImplementor session, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled(cancellationToken);
+            }
+            try
+            {
+                NullSafeSet(cmd, value, index, session);
+                return Task.CompletedTask;
+            }
+            catch (Exception e)
+            {
+                return Task.FromException(e);
+            }
+        }
+        
+        public override object NullSafeGet(DbDataReader rs, string[] names, ISessionImplementor session, object owner)
         {
             return NullSafeGet(rs, names[0], session, owner);
         }
 
-        public override object NullSafeGet(IDataReader rs, string name, ISessionImplementor session, object owner)
+        public override object NullSafeGet(DbDataReader rs, string name, ISessionImplementor session, object owner)
         {
             int index = rs.GetOrdinal(name);
 
@@ -168,18 +198,44 @@ namespace Lob.NHibernate.Type
 
                     if (i != payload.Length)
                     {
-                        if (Logger.IsErrorEnabled) Logger.ErrorFormat("Unknown payload (identifier) length. Recieved {0} but expected {1} bytes for owner: {2}", i, payload.Length, owner);
+                        if (Logger.IsErrorEnabled()) Logger.Error("Unknown payload (identifier) length. Recieved {0} but expected {1} bytes for owner: {2}", i, payload.Length, owner);
                         return null;
                     }
                 }
                 else
                 {
-                    if (Logger.IsErrorEnabled) Logger.ErrorFormat("Unknown payload (identifier) length. Recieved 0 but expected {0} bytes for owner: {1}", payload.Length, owner);
+                    if (Logger.IsErrorEnabled()) Logger.Error("Unknown payload (identifier) length. Recieved 0 but expected {0} bytes for owner: {1}", payload.Length, owner);
                     return null;
                 }
             }
 
             return CreateLobInstance(conn, payload);
+        }
+
+        public override Task<object> NullSafeGetAsync(DbDataReader rs, string name, ISessionImplementor session, object owner, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return Task.FromCanceled<object>(cancellationToken);
+            }
+            try
+            {
+                return Task.FromResult(NullSafeGet(rs, name, session, owner));
+            }
+            catch (Exception e)
+            {
+                return Task.FromException<object>(e);
+            }
+        }
+
+        public override Task<object> NullSafeGetAsync(DbDataReader rs, string[] names, ISessionImplementor session, object owner, CancellationToken cancellationToken)
+        {
+            return NullSafeGetAsync(rs, names[0], session, owner, cancellationToken);
+        }
+
+        public override Task<bool> IsDirtyAsync(object old, object current, bool[] checkable, ISessionImplementor session, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
 
         public override SqlType[] SqlTypes(IMapping mapping)
@@ -205,16 +261,6 @@ namespace Lob.NHibernate.Type
         public override bool[] ToColumnNullness(object value, IMapping mapping)
         {
             return value == null ? new[] {false} : new[] {true};
-        }
-
-        public override object FromXMLNode(XmlNode xml, IMapping factory)
-        {
-            return null;
-        }
-
-        public override void SetToXMLNode(XmlNode xml, object value, ISessionFactoryImplementor factory)
-        {
-            xml.Value = null;
         }
 
         public override bool Equals(object obj)
