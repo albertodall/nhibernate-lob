@@ -53,10 +53,9 @@ namespace Lob.NHibernate.Compression
 
 		public void SetParameterValues(IDictionary<string, string> parameters)
 		{
-			string conf = parameters["conformance"];
-			if (!string.IsNullOrEmpty(conf)) ConformanceLevel = (ConformanceLevel) Enum.Parse(typeof (ConformanceLevel), conf, true);
-			string enc = parameters["encoding"];
-			if (!string.IsNullOrEmpty(enc)) Encoding = Encoding.GetEncoding(enc);
+			if (parameters == null) return;
+			if (parameters.TryGetValue("conformance", out var conf)) ConformanceLevel = (ConformanceLevel) Enum.Parse(typeof (ConformanceLevel), conf, true);
+			if (parameters.TryGetValue("encoding", out var enc)) Encoding = Encoding.GetEncoding(enc);
 		}
 
 		public XmlReader GetDecompressor(Stream input)

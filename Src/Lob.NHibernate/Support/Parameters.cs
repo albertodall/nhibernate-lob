@@ -12,8 +12,9 @@ namespace Lob.NHibernate.Support
 		{
 			length = ParseLength(parameters);
 
-			string compr = parameters == null ? null : parameters["compression"];
-
+			string compr = null;
+			if (parameters != null) parameters.TryGetValue("compression", out compr);
+			
 			if (string.IsNullOrEmpty(compr))
 			{
 				compression = null;
@@ -36,7 +37,6 @@ namespace Lob.NHibernate.Support
 		{
 			int length;
 			string len = null;
-
 			if (parameters != null) parameters.TryGetValue("length", out len);
 
 			if (!string.IsNullOrEmpty(len))
@@ -66,7 +66,8 @@ namespace Lob.NHibernate.Support
 		{
 			length = ParseLength(parameters);
 
-			string compr = parameters == null ? null : parameters["compression"];
+			string compr = null;
+			if (parameters != null) parameters.TryGetValue("compression", out compr);
 			if (string.IsNullOrEmpty(compr))
 				compression = null;
 			else if (compr.Equals("gzip", StringComparison.OrdinalIgnoreCase))
@@ -80,7 +81,8 @@ namespace Lob.NHibernate.Support
 					parameterized.SetParameterValues(parameters);
 			}
 
-			string enc = parameters == null ? null : parameters["encoding"];
+			string enc = null;
+			if (parameters != null) parameters.TryGetValue("encoding", out enc);
 
 			encoding = !string.IsNullOrEmpty(enc) ? Encoding.GetEncoding(enc) : null;
 		}
@@ -89,7 +91,8 @@ namespace Lob.NHibernate.Support
 		{
 			length = ParseLength(parameters);
 
-			string compr = parameters == null ? null : parameters["compression"];
+			string compr = null;
+			if (parameters != null) parameters.TryGetValue("compression", out compr);
 			if (string.IsNullOrEmpty(compr))
 				compression = null;
 			else if (compr.Equals("gzip", StringComparison.OrdinalIgnoreCase))
