@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <AssemblyName>Lob.NHibernate</AssemblyName>
     <PackageId>Lob.NHibernate</PackageId>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
@@ -13,12 +13,11 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>Lob.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\Lob.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="Microsoft.CSharp" />
+    <None Include="..\Lob.snk" Link="Lob.snk" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,7 +28,7 @@
     <ProjectReference Include="..\Lob.Model\Lob.Model.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web" />
   </ItemGroup>

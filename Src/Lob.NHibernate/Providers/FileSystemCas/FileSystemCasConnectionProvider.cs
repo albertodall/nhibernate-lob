@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+#if !NETSTANDARD2_0
 using System.Web;
-using System.Web.Hosting;
+using System.Web.Hosting;    
+#endif
 
 namespace Lob.NHibernate.Providers.FileSystemCas
 {
@@ -61,6 +63,7 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 			if (storagePath == null) throw new NullReferenceException("Storage path cannot be null. Must be existing path.");
 			if (!Path.IsPathRooted(storagePath))
 			{
+#if !NETSTANDARD2_0
 				if (storagePath.StartsWith("~/"))
 				{
 					HttpContext context = HttpContext.Current;
@@ -70,9 +73,10 @@ namespace Lob.NHibernate.Providers.FileSystemCas
 						storagePath = HostingEnvironment.MapPath(storagePath);
 				}
 				else
+#endif
 					storagePath = Path.GetFullPath(storagePath);
 			}
-			if (!Directory.Exists(storagePath))
+            if (!Directory.Exists(storagePath))
 			{
 				try
 				{
